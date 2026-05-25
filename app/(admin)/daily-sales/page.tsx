@@ -222,7 +222,7 @@ export default function DailySalesPage() {
             <div className="mx-auto w-full max-w-4xl">
                 <div className="mb-5 space-y-4">
                     <div>
-                        <h1 className="text-2xl font-bold">일일매출보고</h1>
+                        <h1 className="text-2xl font-bold">일일매출현황</h1>
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <input
@@ -303,7 +303,7 @@ export default function DailySalesPage() {
                             >
 
                                 <h2 className="mb-4 break-keep text-base font-bold sm:mb-5 sm:text-lg">
-                                    {row.report_date} {row.syndicator_names} 데이터 공유드립니다.
+                                    {row.report_date} {row.syndicator_names} 일일 매출 현황.
                                 </h2>
 
 

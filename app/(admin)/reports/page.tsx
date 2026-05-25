@@ -65,6 +65,7 @@ export default function ReportsPage() {
     const [totalCount, setTotalCount] = useState(0)
     const [adminRole, setAdminRole] = useState('')
     const [allowedSyndicatorIds, setAllowedSyndicatorIds] = useState<string[]>([])
+    const [adminLoaded, setAdminLoaded] = useState(false)
 
     const [filters, setFilters] = useState({
         startDate: '',
@@ -122,8 +123,9 @@ export default function ReportsPage() {
     }, [adminRole, allowedSyndicatorIds])
 
     useEffect(() => {
+        if (!adminLoaded) return
         loadReports()
-    }, [page, pageSize, searchParams])
+    }, [adminLoaded, adminRole, allowedSyndicatorIds, page, pageSize, searchParams])
 
     async function loadReports() {
         setLoading(true)
@@ -222,7 +224,10 @@ export default function ReportsPage() {
             data: { user },
         } = await supabase.auth.getUser()
 
-        if (!user) return
+        if (!user) {
+            setAdminLoaded(true)
+            return
+        }
 
         const { data: adminData } = await supabase
             .from('ad_admin_users')
@@ -230,7 +235,10 @@ export default function ReportsPage() {
             .eq('auth_user_id', user.id)
             .single()
 
-        if (!adminData) return
+        if (!adminData) {
+            setAdminLoaded(true)
+            return
+        }
 
         setAdminRole(adminData.role)
 
@@ -247,6 +255,8 @@ export default function ReportsPage() {
                 (accessData ?? []).map((item) => item.syndicator_id)
             )
         }
+
+        setAdminLoaded(true)
     }
 
     function resetFilters() {
