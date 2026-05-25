@@ -71,6 +71,50 @@ export default function DailySalesPage() {
 
     const [syndicators, setSyndicators] = useState<SyndicatorItem[]>([])
     const [selectedSyndicatorIds, setSelectedSyndicatorIds] = useState<string[]>([])
+    const [adminRole, setAdminRole] = useState('')
+    const [allowedSyndicatorIds, setAllowedSyndicatorIds] = useState<string[]>([])
+    const [adminLoaded, setAdminLoaded] = useState(false)
+
+    async function loadAdminRole() {
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+            setAdminLoaded(true)
+            return
+        }
+
+        const { data: adminData } = await supabase
+            .from('ad_admin_users')
+            .select('id, role')
+            .eq('auth_user_id', user.id)
+            .single()
+
+        if (!adminData) {
+            setAdminLoaded(true)
+            return
+        }
+
+        setAdminRole(adminData.role)
+
+        if (
+            adminData.role === 'manager_readonly' ||
+            adminData.role === 'syndicator'
+        ) {
+            const { data: accessData } = await supabase
+                .from('ad_admin_syndicator_access')
+                .select('syndicator_id')
+                .eq('admin_user_id', adminData.id)
+
+            const ids = (accessData ?? []).map((item) => item.syndicator_id)
+
+            setAllowedSyndicatorIds(ids)
+            setSelectedSyndicatorIds(ids)
+        }
+
+        setAdminLoaded(true)
+    }
 
     async function loadDailySales() {
         setLoading(true)
@@ -89,7 +133,17 @@ export default function DailySalesPage() {
             return
         }
 
-        const syndicatorList = (syndicatorData ?? []) as SyndicatorItem[]
+        let syndicatorList = (syndicatorData ?? []) as SyndicatorItem[]
+
+        if (
+            adminRole === 'manager_readonly' ||
+            adminRole === 'syndicator'
+        ) {
+            syndicatorList = syndicatorList.filter((item) =>
+                allowedSyndicatorIds.includes(item.id)
+            )
+        }
+
         setSyndicators(syndicatorList)
 
         const targetIds =
@@ -214,8 +268,13 @@ export default function DailySalesPage() {
     }
 
     useEffect(() => {
-        loadDailySales()
+        loadAdminRole()
     }, [])
+
+    useEffect(() => {
+        if (!adminLoaded) return
+        loadDailySales()
+    }, [adminLoaded])
 
     return (
         <main className="px-4 py-5 sm:px-6">

@@ -20,7 +20,7 @@ import { supabase } from '@/lib/supabase/client'
 const menus = [
     { href: '/dashboard', label: '대시보드', icon: BarChart3, roles: ['super_admin', 'manager_full'] },
     { href: '/reports', label: '리포트', icon: FileText, roles: ['super_admin', 'manager_full', 'manager_readonly', 'syndicator'] },
-    { href: '/daily-sales', label: '일일매출보고', icon: CalendarDays, roles: ['super_admin', 'manager_full'] },
+    { href: '/daily-sales', label: '일일매출현황', icon: CalendarDays, roles: ['super_admin', 'manager_full', 'manager_readonly'] },
     { href: '/syndicators', label: '신디사 관리', icon: Building2, roles: ['super_admin', 'manager_full'] },
     { href: '/media', label: '매체 관리', icon: Newspaper, roles: ['super_admin', 'manager_full'] },
     { href: '/placements', label: '지면 관리', icon: LayoutGrid, roles: ['super_admin', 'manager_full'] },
@@ -69,8 +69,8 @@ export default function AdminSidebar() {
                                 key={item.href}
                                 href={item.href}
                                 className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${active
-                                        ? 'bg-black text-white'
-                                        : 'bg-zinc-100 text-zinc-700'
+                                    ? 'bg-black text-white'
+                                    : 'bg-zinc-100 text-zinc-700'
                                     }`}
                             >
                                 <Icon size={16} />
@@ -103,8 +103,8 @@ export default function AdminSidebar() {
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active
-                                        ? 'bg-black text-white'
-                                        : 'text-zinc-600 hover:bg-zinc-100 hover:text-black'
+                                    ? 'bg-black text-white'
+                                    : 'text-zinc-600 hover:bg-zinc-100 hover:text-black'
                                     }`}
                             >
                                 <Icon size={18} />
