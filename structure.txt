@@ -1,0 +1,61 @@
+폴더 PATH의 목록입니다.
+볼륨 일련 번호는 8AC9-BEF1입니다.
+C:\ADRELAY-REPORT-CENTER\APP
+│  favicon.ico
+│  globals.css
+│  layout.tsx
+│  page.tsx
+│  
+├─(admin)
+│  │  layout.tsx
+│  │  
+│  ├─admins
+│  │      page.tsx
+│  │      
+│  ├─api-keys
+│  │      page.tsx
+│  │      
+│  ├─collection
+│  │  │  page.tsx
+│  │  │  
+│  │  └─unmatched
+│  │          page.tsx
+│  │          
+│  ├─daily-sales
+│  │      page.tsx
+│  │      
+│  ├─dashboard
+│  │      page.tsx
+│  │      
+│  ├─media
+│  │      page.tsx
+│  │      
+│  ├─placements
+│  │      page.tsx
+│  │      
+│  ├─reports
+│  │      page.tsx
+│  │      
+│  └─syndicators
+│          page.tsx
+│          
+├─api
+│  ├─admin-users
+│  │  └─create
+│  │          route.ts
+│  │          
+│  ├─collect-api-key
+│  │      route.ts
+│  │      
+│  ├─collect-test
+│  │      route.ts
+│  │      
+│  ├─process-raw-reports
+│  │      route.ts
+│  │      
+│  └─settlement-report
+│          route.ts
+│          
+└─login
+        page.tsx
+        
