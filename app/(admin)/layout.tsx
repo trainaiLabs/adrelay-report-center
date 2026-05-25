@@ -43,9 +43,16 @@ export default function AdminLayout({
 
         const readonlyRoles = ['manager_readonly', 'syndicator']
 
+        const readonlyAllowedPaths = [
+            '/reports',
+            '/daily-sales',
+        ]
+
         if (
             readonlyRoles.includes(data.role) &&
-            !pathname.startsWith('/reports')
+            !readonlyAllowedPaths.some((path) =>
+                pathname.startsWith(path)
+            )
         ) {
             router.replace('/reports')
             return
