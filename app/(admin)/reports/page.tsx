@@ -213,7 +213,7 @@ export default function ReportsPage() {
             const mergedRows = mergeReportRows(data as unknown as ReportRow[])
 
             setReports(mergedRows)
-            setTotalCount(mergedRows.length)
+            setTotalCount(count ?? 0)
         }
 
         setLoading(false)
