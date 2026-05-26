@@ -82,6 +82,10 @@ export async function POST(req: NextRequest) {
             const placement = mapping.ad_placements
             const rawData = raw.raw_data || {}
 
+            const impressions = Number(rawData.impressions || 0)
+
+            if (impressions <= 100) continue
+
             reportRows.push({
                 report_date: raw.report_date,
                 syndicator_id: placement.syndicator_id,
