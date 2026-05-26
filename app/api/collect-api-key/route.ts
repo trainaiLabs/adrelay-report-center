@@ -110,6 +110,57 @@ async function collectByProvider(
             )
     }
 
+    if (apiKey.provider_code === 'emplan') {
+        const baseUrl = apiKey.api_base_url || 'https://rpt.emplan.kr/api/report/'
+
+        const response = await fetch(baseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            cache: 'no-store',
+            body: JSON.stringify({
+                partnerType: 'PUB',
+                partnerId: 'klmedia',
+                apiKey: apiKey.api_key,
+                viewType: 'N',
+                startDate,
+                endDate,
+            }),
+        })
+
+        if (!response.ok) {
+            throw new Error(`엠플랜 API 호출 실패: ${response.status}`)
+        }
+
+        const result = await response.json()
+
+        console.log('🔥 엠플랜 API 원본 응답')
+        console.log(JSON.stringify(result, null, 2))
+
+        if (result?.code !== 'OK') {
+            throw new Error(
+                `엠플랜 API 결과 오류: ${result?.code ?? 'unknown'} / 응답: ${JSON.stringify(result).slice(0, 300)}`
+            )
+        }
+
+        const reports = Array.isArray(result?.report) ? result.report : []
+
+        return reports
+            .map((row: any) => ({
+                report_date: String(row.date ?? ''),
+                external_placement_name: String(row.adverIdx ?? row.pageId ?? row.siteId ?? '').trim(),
+                impressions: toNumber(row.pv),
+                clicks: toNumber(row.click),
+                final_purchase_amount: toNumber(row.sales),
+                revenue_amount: toNumber(row.sales),
+            }))
+            .filter(
+                (row: CollectedRow) =>
+                    row.report_date && row.external_placement_name
+            )
+    }
+
     if (apiKey.provider_code === 'dable') {
         const baseUrl = apiKey.api_base_url
 
