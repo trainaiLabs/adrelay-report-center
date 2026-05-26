@@ -133,7 +133,18 @@ async function collectByProvider(
             throw new Error(`엠플랜 API 호출 실패: ${response.status}`)
         }
 
-        const result = await response.json()
+        const rawText = await response.text()
+
+        console.log('엠플랜 RAW 응답')
+        console.log(rawText)
+
+        let result: any = {}
+
+        try {
+            result = JSON.parse(rawText)
+        } catch (e) {
+            throw new Error(`엠플랜 JSON 파싱 실패: ${rawText}`)
+        }
 
         console.log('🔥 엠플랜 API 원본 응답')
         console.log(JSON.stringify(result, null, 2))
@@ -186,18 +197,7 @@ async function collectByProvider(
             throw new Error(`데이블 API 호출 실패: ${response.status}`)
         }
 
-        const rawText = await response.text()
-
-        console.log('엠플랜 RAW 응답')
-        console.log(rawText)
-
-        let result: any = {}
-
-        try {
-            result = JSON.parse(rawText)
-        } catch (e) {
-            throw new Error(`엠플랜 JSON 파싱 실패: ${rawText}`)
-        }
+        const result = await response.json()
 
         console.log('🔥 데이블 API 원본 응답')
         console.log(JSON.stringify(result, null, 2))
