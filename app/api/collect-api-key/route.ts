@@ -113,7 +113,7 @@ async function collectByProvider(
     if (apiKey.provider_code === 'emplan') {
         const baseUrl = apiKey.api_base_url || 'https://rpt.emplan.kr/api/report/'
 
-        const response = await fetch(baseUrl, {
+        /*const response = await fetch(baseUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -127,6 +127,25 @@ async function collectByProvider(
                 startDate,
                 endDate,
             }),
+        })*/
+
+        const partnerId = apiKey.api_secret || 'klmedia'
+
+        const formData = new URLSearchParams()
+        formData.set('partnerType', 'PUB')
+        formData.set('partnerId', partnerId)
+        formData.set('apiKey', apiKey.api_key)
+        formData.set('viewType', 'N')
+        formData.set('startDate', startDate)
+        formData.set('endDate', endDate)
+
+        const response = await fetch(baseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            cache: 'no-store',
+            body: formData.toString(),
         })
 
         if (!response.ok) {
