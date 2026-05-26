@@ -113,31 +113,24 @@ async function collectByProvider(
     if (apiKey.provider_code === 'emplan') {
         const baseUrl = apiKey.api_base_url || 'https://rpt.emplan.kr/api/report/'
 
-        /*const response = await fetch(baseUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            cache: 'no-store',
-            body: JSON.stringify({
-                partnerType: 'PUB',
-                partnerId: 'klmedia',
-                apiKey: apiKey.api_key,
-                viewType: 'N',
-                startDate,
-                endDate,
-            }),
-        })*/
-
         const partnerId = apiKey.api_secret || 'klmedia'
+        const emplanStartDate = startDate.replaceAll('-', '')
+        const emplanEndDate = endDate.replaceAll('-', '')
 
         const formData = new URLSearchParams()
         formData.set('partnerType', 'PUB')
         formData.set('partnerId', partnerId)
         formData.set('apiKey', apiKey.api_key)
         formData.set('viewType', 'N')
-        formData.set('startDate', startDate)
-        formData.set('endDate', endDate)
+        formData.set('startDate', emplanStartDate)
+        formData.set('endDate', emplanEndDate)
+
+        console.log('엠플랜 요청값', {
+            partnerId,
+            startDate: emplanStartDate,
+            endDate: emplanEndDate,
+            viewType: 'N',
+        })
 
         const response = await fetch(baseUrl, {
             method: 'POST',
