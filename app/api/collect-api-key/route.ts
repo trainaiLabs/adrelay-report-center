@@ -184,6 +184,68 @@ async function collectByProvider(
             )
     }
 
+    if (apiKey.provider_code === 'digitalcamp') {
+        const baseUrl =
+            apiKey.api_base_url || 'http://sspmedia.digitalcamp.co.kr/API/report'
+
+        const digitalcampStartDate = startDate.replaceAll('-', '')
+        const digitalcampEndDate = endDate.replaceAll('-', '')
+
+        const url = new URL(baseUrl)
+        url.searchParams.set('apikey', apiKey.api_key)
+        url.searchParams.set('sdate', digitalcampStartDate)
+        url.searchParams.set('edate', digitalcampEndDate)
+        // type은 비우면 전체 조회라서 넣지 않음
+
+        console.log('디지털캠프 요청값', {
+            url: url.toString().replace(apiKey.api_key, '****'),
+            startDate: digitalcampStartDate,
+            endDate: digitalcampEndDate,
+        })
+
+        const response = await fetch(url.toString(), {
+            method: 'GET',
+            cache: 'no-store',
+        })
+
+        if (!response.ok) {
+            throw new Error(`디지털캠프 API 호출 실패: ${response.status}`)
+        }
+
+        const rawText = await response.text()
+
+        console.log('디지털캠프 RAW 응답')
+        console.log(rawText)
+
+        let result: any
+
+        try {
+            result = JSON.parse(rawText)
+        } catch {
+            throw new Error(`디지털캠프 JSON 파싱 실패: ${rawText}`)
+        }
+
+        if (result?.data === 'no') {
+            return []
+        }
+
+        const reports = Array.isArray(result?.data) ? result.data : []
+
+        return reports
+            .map((row: any) => ({
+                report_date: String(row.date ?? ''),
+                external_placement_name: String(row.zone ?? row.zoneid ?? '').trim(),
+                impressions: toNumber(row.view),
+                clicks: toNumber(row.click),
+                final_purchase_amount: toNumber(row.sales),
+                revenue_amount: toNumber(row.sales),
+            }))
+            .filter(
+                (row: CollectedRow) =>
+                    row.report_date && row.external_placement_name
+            )
+    }
+
     if (apiKey.provider_code === 'dable') {
         const baseUrl = apiKey.api_base_url
 
