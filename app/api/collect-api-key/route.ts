@@ -134,7 +134,7 @@ async function collectByProvider(
             viewType: 'D',
         })
 
-        /*const response = await fetch(RELAY_URL, {
+        const response = await fetch(RELAY_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -147,30 +147,6 @@ async function collectByProvider(
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: formData.toString(),
-            }),
-        })*/
-        const requestBody = {
-            partnerType: 'PUB',
-            partnerId,
-            apiKey: apiKey.api_key,
-            viewType: 'D',
-            startDate: emplanStartDate,
-            endDate: emplanEndDate,
-        }
-
-        const response = await fetch(RELAY_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            cache: 'no-store',
-            body: JSON.stringify({
-                url: baseUrl,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody),
             }),
         })
 
