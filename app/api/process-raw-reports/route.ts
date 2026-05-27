@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
                 revenue_option: placement.revenue_option,
                 revenue_option_value: placement.revenue_option_value,
 
-                impressions: Number(rawData.impressions || 0),
+                impressions,
                 clicks: Number(rawData.clicks || 0),
 
                 purchase_amount: Number(rawData.final_purchase_amount || 0),
