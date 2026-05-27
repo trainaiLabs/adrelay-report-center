@@ -255,6 +255,107 @@ async function collectByProvider(
             )
     }
 
+    if (apiKey.provider_code === 'adpnut') {
+        const baseUrl =
+            apiKey.api_base_url ||
+            'http://publishers.adpnut.com/common/api/adpnut/get_synd.jsp'
+
+        const adpnutStartDate = startDate.replaceAll('-', '')
+        const adpnutEndDate = endDate.replaceAll('-', '')
+
+        const url = new URL(baseUrl)
+        url.searchParams.set('loginid', apiKey.api_key)
+        url.searchParams.set('beginday', adpnutStartDate)
+        url.searchParams.set('endday', adpnutEndDate)
+        url.searchParams.set('rtn_type', 'json')
+
+        console.log('피넛테크 요청값', {
+            url: url.toString().replace(apiKey.api_key, '****'),
+            startDate: adpnutStartDate,
+            endDate: adpnutEndDate,
+        })
+
+        const response = await fetch(RELAY_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            cache: 'no-store',
+            body: JSON.stringify({
+                url: url.toString(),
+                method: 'GET',
+                headers: {},
+            }),
+        })
+
+        if (!response.ok) {
+            throw new Error(`피넛테크 API 호출 실패: ${response.status}`)
+        }
+
+        const rawText = await response.text()
+
+        console.log('피넛테크 RAW 응답')
+        console.log(rawText)
+
+        let result: any
+
+        try {
+            result = JSON.parse(rawText)
+        } catch {
+            throw new Error(`피넛테크 JSON 파싱 실패: ${rawText}`)
+        }
+
+        const reports =
+            Array.isArray(result)
+                ? result
+                : Array.isArray(result?.data)
+                    ? result.data
+                    : Array.isArray(result?.list)
+                        ? result.list
+                        : Array.isArray(result?.result)
+                            ? result.result
+                            : []
+
+        return reports
+            .map((row: any) => ({
+                report_date: String(
+                    row.date ??
+                    row.day ??
+                    row.regdate ??
+                    row.beginday ??
+                    ''
+                ).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'),
+                external_placement_name: String(
+                    row.pageid ??
+                    row.pageId ??
+                    row.Pageid ??
+                    row.zone ??
+                    row.name ??
+                    ''
+                ).trim(),
+                impressions: toNumber(
+                    row.imp ??
+                    row.impressions ??
+                    row.view ??
+                    row.pv ??
+                    0
+                ),
+                clicks: toNumber(row.click ?? row.clicks ?? 0),
+                final_purchase_amount: 0,
+                revenue_amount: toNumber(
+                    row.sales ??
+                    row.revenue ??
+                    row.amount ??
+                    row.price ??
+                    0
+                ),
+            }))
+            .filter(
+                (row: CollectedRow) =>
+                    row.report_date && row.external_placement_name
+            )
+    }
+
     if (apiKey.provider_code === 'dable') {
         const baseUrl = apiKey.api_base_url
 
