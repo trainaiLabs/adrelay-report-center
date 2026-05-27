@@ -476,6 +476,10 @@ export async function POST(req: NextRequest) {
             const placement = mapping.ad_placements
             const rawData = raw.raw_data
 
+            const impressions = Number(rawData.impressions || 0)
+
+            if (impressions <= 100) continue
+
             reportRows.push({
                 report_date: raw.report_date,
                 syndicator_id: placement.syndicator_id,
@@ -483,7 +487,7 @@ export async function POST(req: NextRequest) {
                 placement_id: placement.id,
                 revenue_option: placement.revenue_option,
                 revenue_option_value: placement.revenue_option_value,
-                impressions: Number(rawData.impressions || 0),
+                impressions,
                 clicks: Number(rawData.clicks || 0),
                 purchase_amount: Number(rawData.final_purchase_amount || 0),
                 cancel_amount: 0,
