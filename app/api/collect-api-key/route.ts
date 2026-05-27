@@ -116,8 +116,8 @@ async function collectByProvider(
         const baseUrl = apiKey.api_base_url || 'https://rpt.emplan.kr/api/report/'
 
         const partnerId = apiKey.api_secret || 'klmedia'
-        const emplanStartDate = startDate.replaceAll('-', '')
-        const emplanEndDate = endDate.replaceAll('-', '')
+        const emplanStartDate = startDate
+        const emplanEndDate = endDate
 
         const formData = new URLSearchParams()
         formData.set('partnerType', 'PUB')
