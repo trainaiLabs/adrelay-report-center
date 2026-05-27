@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
+const RELAY_URL = 'http://211.188.53.120:3001/proxy'
+
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -132,13 +134,20 @@ async function collectByProvider(
             viewType: 'N',
         })
 
-        const response = await fetch(baseUrl, {
+        const response = await fetch(RELAY_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
             },
             cache: 'no-store',
-            body: formData.toString(),
+            body: JSON.stringify({
+                url: baseUrl,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString(),
+            }),
         })
 
         if (!response.ok) {
