@@ -123,7 +123,7 @@ async function collectByProvider(
         formData.set('partnerType', 'PUB')
         formData.set('partnerId', partnerId)
         formData.set('apiKey', apiKey.api_key)
-        formData.set('viewType', 'N')
+        formData.set('viewType', 'D')
         formData.set('startDate', emplanStartDate)
         formData.set('endDate', emplanEndDate)
 
@@ -131,7 +131,7 @@ async function collectByProvider(
             partnerId,
             startDate: emplanStartDate,
             endDate: emplanEndDate,
-            viewType: 'N',
+            viewType: 'D',
         })
 
         const response = await fetch(RELAY_URL, {
