@@ -22,7 +22,12 @@ export async function POST(req: NextRequest) {
 
         const { data: rawReports, error: rawError } = await supabaseAdmin
             .from('ad_external_raw_reports')
-            .select('*')
+            .select(`
+        *,
+        ad_external_api_sources (
+            provider_code
+        )
+    `)
             .eq('source_id', sourceId)
             .eq('report_date', targetDate)
 
@@ -103,7 +108,8 @@ export async function POST(req: NextRequest) {
 
                 revenue_amount: Number(rawData.revenue_amount || 0),
 
-                source: 'api',
+                source:
+                    raw.ad_external_api_sources?.provider_code || 'api',
                 memo: `자동수집: ${externalName}`,
             })
         }
