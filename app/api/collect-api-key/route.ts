@@ -529,7 +529,11 @@ export async function POST(req: NextRequest) {
 
         const collectedRows = await collectByProvider(apiKey, startDate, endDate)
 
-        const rawRows = collectedRows.map((row) => ({
+        const filteredRows = collectedRows.filter(
+            (row) => Number(row.impressions || 0) > 100
+        )
+
+        const rawRows = filteredRows.map((row) => ({
             source_id: source.id,
             report_date: row.report_date,
             external_placement_key: row.external_placement_name,
