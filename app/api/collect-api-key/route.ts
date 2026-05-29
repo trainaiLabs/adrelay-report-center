@@ -306,49 +306,26 @@ async function collectByProvider(
         }
 
         const reports =
-            Array.isArray(result)
-                ? result
+            Array.isArray(result?.result?.data)
+                ? result.result.data
                 : Array.isArray(result?.data)
                     ? result.data
-                    : Array.isArray(result?.list)
-                        ? result.list
-                        : Array.isArray(result?.result)
-                            ? result.result
-                            : []
+                    : Array.isArray(result)
+                        ? result
+                        : []
 
         return reports
             .map((row: any) => ({
-                report_date: String(
-                    row.date ??
-                    row.day ??
-                    row.regdate ??
-                    row.beginday ??
-                    ''
-                ).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'),
-                external_placement_name: String(
-                    row.pageid ??
-                    row.pageId ??
-                    row.Pageid ??
-                    row.zone ??
-                    row.name ??
-                    ''
-                ).trim(),
-                impressions: toNumber(
-                    row.imp ??
-                    row.impressions ??
-                    row.view ??
-                    row.pv ??
-                    0
+                report_date: String(row.date ?? '').replace(
+                    /(\d{4})(\d{2})(\d{2})/,
+                    '$1-$2-$3'
                 ),
-                clicks: toNumber(row.click ?? row.clicks ?? 0),
+                external_placement_name:
+                    `${row.pageid ?? ''} / ${row.pagename ?? ''}`.trim(),
+                impressions: toNumber(row.impr),
+                clicks: toNumber(row.click),
                 final_purchase_amount: 0,
-                revenue_amount: toNumber(
-                    row.sales ??
-                    row.revenue ??
-                    row.amount ??
-                    row.price ??
-                    0
-                ),
+                revenue_amount: toNumber(row.revenue),
             }))
             .filter(
                 (row: CollectedRow) =>
