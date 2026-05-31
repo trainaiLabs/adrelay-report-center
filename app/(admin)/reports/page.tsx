@@ -399,7 +399,24 @@ export default function ReportsPage() {
             '최종수익금',
         ]
 
-        const rows = reports.map((row) => [
+        const sortedReports = [...reports].sort((a, b) => {
+            const dateCompare = String(a.report_date).localeCompare(String(b.report_date))
+            if (dateCompare !== 0) return dateCompare
+
+            const syndicatorCompare = String(a.ad_syndicators?.name ?? '').localeCompare(
+                String(b.ad_syndicators?.name ?? '')
+            )
+            if (syndicatorCompare !== 0) return syndicatorCompare
+
+            const placementCompare = String(a.ad_placements?.name ?? '').localeCompare(
+                String(b.ad_placements?.name ?? '')
+            )
+            if (placementCompare !== 0) return placementCompare
+
+            return String(a.id).localeCompare(String(b.id))
+        })
+
+        const rows = sortedReports.map((row) => [
             row.report_date,
             row.ad_syndicators?.name ?? '',
             row.ad_placements?.name ?? '',
