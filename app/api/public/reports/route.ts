@@ -46,8 +46,6 @@ export async function GET(req: NextRequest) {
             .eq('is_active', true)
             .single()
 
-        console.log('API KEY 조회 결과')
-        console.log(JSON.stringify(keyData, null, 2))
 
         if (keyError || !keyData) {
             return Response.json(
