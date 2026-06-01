@@ -97,11 +97,14 @@ export async function GET(req: NextRequest) {
             )
         }
 
+        const syndicatorInfo = keyData.ad_syndicators as any
+        const syndicatorName = Array.isArray(syndicatorInfo)
+            ? syndicatorInfo[0]?.name ?? ''
+            : syndicatorInfo?.name ?? ''
+
         return Response.json({
             success: true,
-            syndicator: Array.isArray(keyData.ad_syndicators)
-                ? keyData.ad_syndicators[0]?.name ?? ''
-                : keyData.ad_syndicators?.name ?? '',
+            syndicator: syndicatorName,
             startDate,
             endDate,
             count: rows?.length ?? 0,
