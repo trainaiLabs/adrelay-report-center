@@ -86,13 +86,52 @@ export default function ReportsPage() {
     const showProfitColumns =
         !isSyndicator
 
+    const finalPurchaseMultiplier =
+        isGordonSyndicator ? 0.9 : 1
+
+    function getDisplayFinalPurchaseAmount(value: number | string | null) {
+        return Math.floor(
+            Number(value || 0) * finalPurchaseMultiplier
+        )
+    }
+
+    function getDisplayAdCost(row: ReportRow) {
+        if (!isGordonSyndicator) {
+            return Number(row.ad_cost || 0)
+        }
+
+        const finalPurchaseAmount = getDisplayFinalPurchaseAmount(
+            row.final_purchase_amount
+        )
+
+        const revenueOptionValue = Number(row.revenue_option_value || 0)
+
+        if (row.revenue_option === 'CPS') {
+            return Math.floor(finalPurchaseAmount * (revenueOptionValue / 100))
+        }
+
+        return Number(row.ad_cost || 0)
+    }
+
     const reportSummary = useMemo(() => {
         return reports.reduce(
             (sum, row) => {
                 sum.impressions += Number(row.impressions || 0)
                 sum.clicks += Number(row.clicks || 0)
-                sum.final_purchase_amount += Number(row.final_purchase_amount || 0)
-                sum.ad_cost += Number(row.ad_cost || 0)
+                const displayFinalPurchaseAmount = Math.floor(
+                    Number(row.final_purchase_amount || 0) * finalPurchaseMultiplier
+                )
+
+                const displayAdCost =
+                    isGordonSyndicator && row.revenue_option === 'CPS'
+                        ? Math.floor(
+                            displayFinalPurchaseAmount *
+                            (Number(row.revenue_option_value || 0) / 100)
+                        )
+                        : Number(row.ad_cost || 0)
+
+                sum.final_purchase_amount += displayFinalPurchaseAmount
+                sum.ad_cost += displayAdCost
                 sum.revenue_amount += Number(row.revenue_amount || 0)
                 sum.final_profit_amount += Number(row.final_profit_amount || 0)
 
@@ -107,7 +146,7 @@ export default function ReportsPage() {
                 final_profit_amount: 0,
             }
         )
-    }, [reports])
+    }, [reports, finalPurchaseMultiplier, isGordonSyndicator])
 
     const [searchParams, setSearchParams] = useState(filters)
 
@@ -458,15 +497,22 @@ export default function ReportsPage() {
             row.ad_syndicators?.name ?? '',
             row.ad_placements?.name ?? '',
             row.revenue_option === 'CPS'
-                ? `${row.revenue_option}/${formatNumber(row.revenue_option_value)}%`
+                ? `${row.revenue_option}/${Number(row.revenue_option_value ?? 0).toFixed(2)}%`
                 : `${row.revenue_option}/${formatNumber(row.revenue_option_value)}원`,
             formatNumber(row.impressions),
             formatNumber(row.clicks),
             getCtr(row.impressions, row.clicks),
             ...(showFinalPurchaseAmount
-                ? [formatNumber(row.final_purchase_amount)]
+                ? [
+                    formatNumber(
+                        Math.floor(
+                            Number(row.final_purchase_amount || 0)
+                            * finalPurchaseMultiplier
+                        )
+                    ),
+                ]
                 : []),
-            formatNumber(row.ad_cost),
+            formatNumber(getDisplayAdCost(row)),
             ...(showProfitColumns
                 ? [
                     formatNumber(row.revenue_amount),
@@ -889,7 +935,12 @@ export default function ReportsPage() {
 
                                             {showFinalPurchaseAmount && (
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                    {formatNumber(reportSummary.final_purchase_amount)}
+                                                    {formatNumber(
+                                                        Math.floor(
+                                                            reportSummary.final_purchase_amount
+                                                            * finalPurchaseMultiplier
+                                                        )
+                                                    )}
                                                 </td>
                                             )}
 
@@ -920,7 +971,7 @@ export default function ReportsPage() {
                                                 <td className="px-3 py-2 text-center text-xs tabular-nums whitespace-nowrap">{row.ad_placements?.name ?? '-'}</td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
                                                     {row.revenue_option === 'CPS'
-                                                        ? `${formatNumber(row.revenue_option_value)}%`
+                                                        ? `${Number(row.revenue_option_value ?? 0).toFixed(2)}%`
                                                         : `${formatNumber(row.revenue_option_value)}원`}
                                                 </td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.impressions)}</td>
@@ -928,12 +979,17 @@ export default function ReportsPage() {
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{getCtr(row.impressions, row.clicks)}</td>
                                                 {showFinalPurchaseAmount && (
                                                     <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                        {formatNumber(row.final_purchase_amount)}
+                                                        {formatNumber(
+                                                            Math.floor(
+                                                                Number(row.final_purchase_amount || 0)
+                                                                * finalPurchaseMultiplier
+                                                            )
+                                                        )}
                                                     </td>
                                                 )}
 
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                    {formatNumber(row.ad_cost)}
+                                                    {formatNumber(getDisplayAdCost(row))}
                                                 </td>
 
                                                 {showProfitColumns && (
