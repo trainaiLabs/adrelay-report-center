@@ -24,24 +24,25 @@ export default function LoginPage() {
         return
       }
 
-      const { data: adminLookup, error: lookupError } = await supabase
-        .from('ad_admin_users')
-        .select('email, is_active')
-        .eq('login_id', normalizedLoginId)
-        .single()
+      const lookupResponse = await fetch('/api/admin-login-lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          loginId: normalizedLoginId,
+        }),
+      })
 
-      if (lookupError || !adminLookup?.email) {
-        setError('아이디 또는 비밀번호가 올바르지 않습니다.')
-        return
-      }
+      const lookupResult = await lookupResponse.json()
 
-      if (!adminLookup.is_active) {
-        setError('비활성화된 관리자 계정입니다.')
+      if (!lookupResponse.ok) {
+        setError(lookupResult.error ?? '아이디 또는 비밀번호가 올바르지 않습니다.')
         return
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: adminLookup.email,
+        email: lookupResult.email,
         password,
       })
 
