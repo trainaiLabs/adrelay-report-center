@@ -690,8 +690,8 @@ export default function AdminsPage() {
                 />
 
                 {modalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-                        <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6">
+                        <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
                             <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
                                 <h2 className="font-semibold">
                                     {editingItem ? '관리자 수정' : '관리자 등록'}
