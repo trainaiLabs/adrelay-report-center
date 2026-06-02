@@ -8,7 +8,9 @@ const supabaseAdmin = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+
 export async function POST(req: NextRequest) {
+    console.log('PROCESS_RAW_REPORTS_START')
     try {
         const body = await req.json()
         const { sourceId, targetDate } = body
@@ -164,6 +166,7 @@ export async function POST(req: NextRequest) {
         if (upsertError) {
             return Response.json({ error: upsertError.message }, { status: 500 })
         }
+        console.log('PROCESS_RAW_REPORTS_DONE', reportRows.length)
 
         return Response.json({
             success: true,
