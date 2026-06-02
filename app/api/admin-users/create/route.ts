@@ -12,18 +12,34 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json()
 
-        const { email, password, name, phone, role, memo } = body
+        const { loginId, email, password, name, phone, role, memo } = body
 
-        if (!email || !password || !name || !role) {
+        if (!loginId || !email || !password || !name || !role) {
             return Response.json(
-                { error: '이메일, 비밀번호, 이름, 권한은 필수입니다.' },
+                { error: '아이디, 이메일, 비밀번호, 이름, 권한은 필수입니다.' },
                 { status: 400 }
+            )
+        }
+
+        const normalizedLoginId = String(loginId).trim()
+        const normalizedEmail = String(email).trim().toLowerCase()
+
+        const { data: existingAdmin } = await supabaseAdmin
+            .from('ad_admin_users')
+            .select('id')
+            .or(`login_id.eq.${normalizedLoginId},email.eq.${normalizedEmail}`)
+            .maybeSingle()
+
+        if (existingAdmin) {
+            return Response.json(
+                { error: '이미 사용 중인 아이디 또는 이메일입니다.' },
+                { status: 409 }
             )
         }
 
         const { data: authData, error: authError } =
             await supabaseAdmin.auth.admin.createUser({
-                email,
+                email: normalizedEmail,
                 password,
                 email_confirm: true,
             })
@@ -39,7 +55,8 @@ export async function POST(req: NextRequest) {
             .from('ad_admin_users')
             .insert({
                 auth_user_id: authData.user.id,
-                login_id: email,
+                login_id: normalizedLoginId,
+                email: normalizedEmail,
                 name,
                 phone: phone || null,
                 role,

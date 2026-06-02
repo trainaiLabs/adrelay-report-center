@@ -18,6 +18,7 @@ type AdminUser = {
     id: string
     auth_user_id: string | null
     login_id: string
+    email: string | null
     name: string
     phone: string | null
     role: string
@@ -46,6 +47,7 @@ export default function AdminsPage() {
     const [selectedSyndicatorIds, setSelectedSyndicatorIds] = useState<string[]>([])
 
     const [form, setForm] = useState({
+        loginId: '',
         email: '',
         password: '',
         name: '',
@@ -143,6 +145,7 @@ export default function AdminsPage() {
 
     function resetForm() {
         setForm({
+            loginId: '',
             email: '',
             password: '',
             name: '',
@@ -163,6 +166,8 @@ export default function AdminsPage() {
         setEditingItem(item)
 
         setForm({
+            loginId: item.login_id,
+
             email: item.login_id,
             password: '',
             name: item.name,
@@ -301,6 +306,10 @@ export default function AdminsPage() {
     }
 
     async function handleCreateAdmin() {
+        if (!form.loginId.trim()) {
+            alert('아이디를 입력해 주세요.')
+            return
+        }
         if (!form.email.trim()) {
             alert('이메일을 입력해 주세요.')
             return
@@ -325,6 +334,7 @@ export default function AdminsPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    loginId: form.loginId.trim(),
                     email: form.email.trim(),
                     password: form.password.trim(),
                     name: form.name.trim(),
@@ -699,6 +709,24 @@ export default function AdminsPage() {
                             </div>
 
                             <div className="space-y-4 p-5">
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium">
+                                        아이디 *
+                                    </label>
+
+                                    <input
+                                        value={form.loginId}
+                                        disabled={!!editingItem}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                loginId: e.target.value,
+                                            })
+                                        }
+                                        className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm disabled:bg-zinc-100"
+                                        placeholder="joongang01"
+                                    />
+                                </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">이메일 *</label>
                                     <input

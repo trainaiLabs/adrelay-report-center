@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 export default function LoginPage() {
   const router = useRouter()
 
-  const [email, setEmail] = useState('')
+  const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -17,13 +17,36 @@ export default function LoginPage() {
       setLoading(true)
       setError('')
 
+      const normalizedLoginId = loginId.trim()
+
+      if (!normalizedLoginId || !password.trim()) {
+        setError('아이디와 비밀번호를 입력해 주세요.')
+        return
+      }
+
+      const { data: adminLookup, error: lookupError } = await supabase
+        .from('ad_admin_users')
+        .select('email, is_active')
+        .eq('login_id', normalizedLoginId)
+        .single()
+
+      if (lookupError || !adminLookup?.email) {
+        setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+        return
+      }
+
+      if (!adminLookup.is_active) {
+        setError('비활성화된 관리자 계정입니다.')
+        return
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: adminLookup.email,
         password,
       })
 
       if (error) {
-        setError(error.message)
+        setError('아이디 또는 비밀번호가 올바르지 않습니다.')
         return
       }
 
@@ -61,10 +84,15 @@ export default function LoginPage() {
 
         <div className="space-y-4">
           <input
-            type="email"
-            placeholder="이메일"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="아이디"
+            value={loginId}
+            onChange={(e) => setLoginId(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleLogin()
+              }
+            }}
             className="w-full border rounded-xl px-4 py-3"
           />
 
@@ -73,6 +101,11 @@ export default function LoginPage() {
             placeholder="비밀번호"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleLogin()
+              }
+            }}
             className="w-full border rounded-xl px-4 py-3"
           />
 
@@ -85,7 +118,7 @@ export default function LoginPage() {
           <button
             onClick={handleLogin}
             disabled={loading}
-            className="w-full bg-black text-white rounded-xl py-3 font-semibold"
+            className="w-full bg-black text-white rounded-xl py-3 font-semibold disabled:opacity-60"
           >
             {loading ? '로그인 중...' : '로그인'}
           </button>
