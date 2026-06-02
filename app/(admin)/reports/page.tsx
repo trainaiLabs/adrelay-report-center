@@ -657,6 +657,13 @@ export default function ReportsPage() {
         setModalOpen(false)
         loadReports()
     }
+    if (!adminLoaded) {
+        return (
+            <div className="p-6 text-sm text-zinc-500">
+                권한 정보를 불러오는 중입니다...
+            </div>
+        )
+    }
 
     return (
         <main className="min-h-screen bg-zinc-50 px-4 py-6">
