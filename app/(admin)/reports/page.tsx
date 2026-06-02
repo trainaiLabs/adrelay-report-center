@@ -66,6 +66,7 @@ export default function ReportsPage() {
     const [adminRole, setAdminRole] = useState('')
     const [allowedSyndicatorIds, setAllowedSyndicatorIds] = useState<string[]>([])
     const [adminLoaded, setAdminLoaded] = useState(false)
+    const [isGordonSyndicator, setIsGordonSyndicator] = useState(false)
 
     const [filters, setFilters] = useState({
         startDate: '',
@@ -77,6 +78,13 @@ export default function ReportsPage() {
 
     const canEdit =
         adminRole === 'super_admin' || adminRole === 'manager_full'
+    const isSyndicator = adminRole === 'syndicator'
+
+    const showFinalPurchaseAmount =
+        !isSyndicator || isGordonSyndicator
+
+    const showProfitColumns =
+        !isSyndicator
 
     const reportSummary = useMemo(() => {
         return reports.reduce(
@@ -120,6 +128,10 @@ export default function ReportsPage() {
 
     useEffect(() => {
         loadFilterOptions()
+    }, [adminRole, allowedSyndicatorIds])
+
+    useEffect(() => {
+        checkGordonSyndicator()
     }, [adminRole, allowedSyndicatorIds])
 
     useEffect(() => {
@@ -294,6 +306,32 @@ export default function ReportsPage() {
         }
     }
 
+    async function checkGordonSyndicator() {
+        if (adminRole !== 'syndicator') {
+            setIsGordonSyndicator(false)
+            return
+        }
+
+        if (allowedSyndicatorIds.length === 0) {
+            setIsGordonSyndicator(false)
+            return
+        }
+
+        const { data, error } = await supabase
+            .from('ad_syndicators')
+            .select('id')
+            .eq('name', '(주)고든')
+            .in('id', allowedSyndicatorIds)
+            .maybeSingle()
+
+        if (error || !data) {
+            setIsGordonSyndicator(false)
+            return
+        }
+
+        setIsGordonSyndicator(true)
+    }
+
     async function loadFilterOptions() {
         let syndicatorQuery = supabase
             .from('ad_syndicators')
@@ -393,10 +431,9 @@ export default function ReportsPage() {
             '노출수',
             '클릭수',
             'CTR',
-            '최종구매금액',
+            ...(showFinalPurchaseAmount ? ['최종구매금액'] : []),
             '광고비',
-            '수익금',
-            '최종수익금',
+            ...(showProfitColumns ? ['수익금', '최종수익금'] : []),
         ]
 
         const sortedReports = [...reports].sort((a, b) => {
@@ -426,10 +463,16 @@ export default function ReportsPage() {
             formatNumber(row.impressions),
             formatNumber(row.clicks),
             getCtr(row.impressions, row.clicks),
-            formatNumber(row.final_purchase_amount),
+            ...(showFinalPurchaseAmount
+                ? [formatNumber(row.final_purchase_amount)]
+                : []),
             formatNumber(row.ad_cost),
-            formatNumber(row.revenue_amount),
-            formatNumber(row.final_profit_amount),
+            ...(showProfitColumns
+                ? [
+                    formatNumber(row.revenue_amount),
+                    formatNumber(row.final_profit_amount),
+                ]
+                : []),
         ])
 
         const csvContent = [
@@ -773,10 +816,24 @@ export default function ReportsPage() {
                                     <th className="px-4 py-3 text-right text-sm font-semibold">노출</th>
                                     <th className="px-4 py-3 text-right text-sm font-semibold">클릭</th>
                                     <th className="px-4 py-3 text-right text-sm font-semibold">CTR</th>
-                                    <th className="px-4 py-3 text-right text-sm font-semibold">최종구매금액</th>
-                                    <th className="px-4 py-3 text-right text-sm font-semibold">광고비</th>
-                                    <th className="px-4 py-3 text-right text-sm font-semibold">수익금</th>
-                                    <th className="px-4 py-3 text-right text-sm font-semibold">최종수익금</th>
+                                    {showFinalPurchaseAmount && (
+                                        <th className="px-4 py-3 text-right text-sm font-semibold">
+                                            최종구매금액
+                                        </th>
+                                    )}
+                                    <th className="px-4 py-3 text-right text-sm font-semibold">
+                                        광고비
+                                    </th>
+                                    {showProfitColumns && (
+                                        <>
+                                            <th className="px-4 py-3 text-right text-sm font-semibold">
+                                                수익금
+                                            </th>
+                                            <th className="px-4 py-3 text-right text-sm font-semibold">
+                                                최종수익금
+                                            </th>
+                                        </>
+                                    )}
                                     {canEdit && (
                                         <th className="px-4 py-3 text-center text-sm font-semibold">
                                             관리
@@ -823,21 +880,26 @@ export default function ReportsPage() {
                                                 {getCtr(reportSummary.impressions, reportSummary.clicks)}
                                             </td>
 
-                                            <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                {formatNumber(reportSummary.final_purchase_amount)}
-                                            </td>
+                                            {showFinalPurchaseAmount && (
+                                                <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
+                                                    {formatNumber(reportSummary.final_purchase_amount)}
+                                                </td>
+                                            )}
 
                                             <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
                                                 {formatNumber(reportSummary.ad_cost)}
                                             </td>
 
-                                            <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                {formatNumber(reportSummary.revenue_amount)}
-                                            </td>
-
-                                            <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                {formatNumber(reportSummary.final_profit_amount)}
-                                            </td>
+                                            {showProfitColumns && (
+                                                <>
+                                                    <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
+                                                        {formatNumber(reportSummary.revenue_amount)}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
+                                                        {formatNumber(reportSummary.final_profit_amount)}
+                                                    </td>
+                                                </>
+                                            )}
 
                                             {canEdit && (
                                                 <td className="px-3 py-2 text-center text-xs"></td>
@@ -857,10 +919,26 @@ export default function ReportsPage() {
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.impressions)}</td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.clicks)}</td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{getCtr(row.impressions, row.clicks)}</td>
-                                                <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.final_purchase_amount)}</td>
-                                                <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.ad_cost)}</td>
-                                                <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.revenue_amount)}</td>
-                                                <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.final_profit_amount)}</td>
+                                                {showFinalPurchaseAmount && (
+                                                    <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
+                                                        {formatNumber(row.final_purchase_amount)}
+                                                    </td>
+                                                )}
+
+                                                <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
+                                                    {formatNumber(row.ad_cost)}
+                                                </td>
+
+                                                {showProfitColumns && (
+                                                    <>
+                                                        <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
+                                                            {formatNumber(row.revenue_amount)}
+                                                        </td>
+                                                        <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
+                                                            {formatNumber(row.final_profit_amount)}
+                                                        </td>
+                                                    </>
+                                                )}
                                                 {canEdit && (
                                                     <td className="px-4 py-3">
                                                         <div className="flex justify-end gap-2">
