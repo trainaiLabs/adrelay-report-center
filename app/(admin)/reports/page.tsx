@@ -956,12 +956,7 @@ export default function ReportsPage() {
 
                                             {showFinalPurchaseAmount && (
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                    {formatNumber(
-                                                        Math.floor(
-                                                            reportSummary.final_purchase_amount
-                                                            * finalPurchaseMultiplier
-                                                        )
-                                                    )}
+                                                    {formatNumber(reportSummary.final_purchase_amount)}
                                                 </td>
                                             )}
 
