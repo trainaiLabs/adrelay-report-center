@@ -32,7 +32,11 @@ type ReportRow = {
     memo: string | null
     ad_syndicators: { name: string } | null
     ad_media_companies: { name: string } | null
-    ad_placements: { name: string } | null
+    ad_placements: {
+        name: string
+        revenue_option: string | null
+        revenue_option_value: number | string | null
+    } | null
 }
 
 type PlacementOption = {
@@ -89,6 +93,18 @@ export default function ReportsPage() {
     const finalPurchaseMultiplier =
         isGordonSyndicator ? 0.9 : 1
 
+    function getDisplayRevenueOption(row: ReportRow) {
+        return row.ad_placements?.revenue_option ?? row.revenue_option
+    }
+
+    function getDisplayRevenueOptionValue(row: ReportRow) {
+        return Number(
+            row.ad_placements?.revenue_option_value ??
+            row.revenue_option_value ??
+            0
+        )
+    }
+
     function getDisplayFinalPurchaseAmount(value: number | string | null) {
         return Math.floor(
             Number(value || 0) * finalPurchaseMultiplier
@@ -104,9 +120,10 @@ export default function ReportsPage() {
             row.final_purchase_amount
         )
 
-        const revenueOptionValue = Number(row.revenue_option_value || 0)
+        const revenueOption = getDisplayRevenueOption(row)
+        const revenueOptionValue = getDisplayRevenueOptionValue(row)
 
-        if (row.revenue_option === 'CPS') {
+        if (revenueOption === 'CPS') {
             return Math.floor(finalPurchaseAmount * (revenueOptionValue / 100))
         }
 
@@ -199,7 +216,11 @@ export default function ReportsPage() {
                 memo,
                 ad_syndicators(name),
                 ad_media_companies(name),
-                ad_placements(name)
+                ad_placements(
+    name,
+    revenue_option,
+    revenue_option_value
+)
             `,
                 { count: 'exact' }
             )
@@ -496,9 +517,9 @@ export default function ReportsPage() {
             row.report_date,
             row.ad_syndicators?.name ?? '',
             row.ad_placements?.name ?? '',
-            row.revenue_option === 'CPS'
-                ? `${row.revenue_option}/${Number(row.revenue_option_value ?? 0).toFixed(2)}%`
-                : `${row.revenue_option}/${formatNumber(row.revenue_option_value)}원`,
+            getDisplayRevenueOption(row) === 'CPS'
+                ? `${getDisplayRevenueOption(row)}/${getDisplayRevenueOptionValue(row).toFixed(2)}%`
+                : `${getDisplayRevenueOption(row)}/${formatNumber(getDisplayRevenueOptionValue(row))}원`,
             formatNumber(row.impressions),
             formatNumber(row.clicks),
             getCtr(row.impressions, row.clicks),
@@ -970,9 +991,9 @@ export default function ReportsPage() {
                                                 <td className="px-3 py-2 text-center text-xs tabular-nums whitespace-nowrap">{row.ad_syndicators?.name ?? '-'}</td>
                                                 <td className="px-3 py-2 text-center text-xs tabular-nums whitespace-nowrap">{row.ad_placements?.name ?? '-'}</td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                    {row.revenue_option === 'CPS'
-                                                        ? `${Number(row.revenue_option_value ?? 0).toFixed(2)}%`
-                                                        : `${formatNumber(row.revenue_option_value)}원`}
+                                                    {getDisplayRevenueOption(row) === 'CPS'
+                                                        ? `${getDisplayRevenueOptionValue(row).toFixed(2)}%`
+                                                        : `${formatNumber(getDisplayRevenueOptionValue(row))}원`}
                                                 </td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.impressions)}</td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.clicks)}</td>
