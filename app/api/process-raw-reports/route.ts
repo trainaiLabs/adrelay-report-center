@@ -112,6 +112,17 @@ export async function POST(req: NextRequest) {
             const revenueAmount = Number(rawData.revenue_amount || 0)
             const finalProfitAmount = revenueAmount - adCost
 
+            console.log('PROCESS_CHECK', {
+                externalName,
+                placementName: placement.name,
+                isSinbiun,
+                rawFinalPurchaseAmount,
+                finalPurchaseAmount,
+                revenueOption,
+                revenueOptionValue,
+                adCost,
+            })
+
             reportRows.push({
                 report_date: raw.report_date,
                 syndicator_id: placement.syndicator_id,
