@@ -90,8 +90,6 @@ export default function ReportsPage() {
     const showProfitColumns =
         !isSyndicator
 
-    const finalPurchaseMultiplier =
-        isGordonSyndicator ? 0.9 : 1
 
     function getDisplayRevenueOption(row: ReportRow) {
         return row.ad_placements?.revenue_option ?? row.revenue_option
@@ -105,50 +103,14 @@ export default function ReportsPage() {
         )
     }
 
-    function getDisplayFinalPurchaseAmount(value: number | string | null) {
-        return Math.floor(
-            Number(value || 0) * finalPurchaseMultiplier
-        )
-    }
-
-    function getDisplayAdCost(row: ReportRow) {
-        if (!isGordonSyndicator) {
-            return Number(row.ad_cost || 0)
-        }
-
-        const finalPurchaseAmount = getDisplayFinalPurchaseAmount(
-            row.final_purchase_amount
-        )
-
-        const revenueOption = getDisplayRevenueOption(row)
-        const revenueOptionValue = getDisplayRevenueOptionValue(row)
-
-        if (revenueOption === 'CPS') {
-            return Math.floor(finalPurchaseAmount * (revenueOptionValue / 100))
-        }
-
-        return Number(row.ad_cost || 0)
-    }
 
     const reportSummary = useMemo(() => {
         return reports.reduce(
             (sum, row) => {
                 sum.impressions += Number(row.impressions || 0)
                 sum.clicks += Number(row.clicks || 0)
-                const displayFinalPurchaseAmount = Math.floor(
-                    Number(row.final_purchase_amount || 0) * finalPurchaseMultiplier
-                )
-
-                const displayAdCost =
-                    isGordonSyndicator && row.revenue_option === 'CPS'
-                        ? Math.floor(
-                            displayFinalPurchaseAmount *
-                            (Number(row.revenue_option_value || 0) / 100)
-                        )
-                        : Number(row.ad_cost || 0)
-
-                sum.final_purchase_amount += displayFinalPurchaseAmount
-                sum.ad_cost += displayAdCost
+                sum.final_purchase_amount += Number(row.final_purchase_amount || 0)
+                sum.ad_cost += Number(row.ad_cost || 0)
                 sum.revenue_amount += Number(row.revenue_amount || 0)
                 sum.final_profit_amount += Number(row.final_profit_amount || 0)
 
@@ -163,7 +125,7 @@ export default function ReportsPage() {
                 final_profit_amount: 0,
             }
         )
-    }, [reports, finalPurchaseMultiplier, isGordonSyndicator])
+    }, [reports])
 
     const [searchParams, setSearchParams] = useState(filters)
 
@@ -217,10 +179,10 @@ export default function ReportsPage() {
                 ad_syndicators(name),
                 ad_media_companies(name),
                 ad_placements(
-    name,
-    revenue_option,
-    revenue_option_value
-)
+                    name,
+                    revenue_option,
+                    revenue_option_value
+                )
             `,
                 { count: 'exact' }
             )
@@ -525,15 +487,10 @@ export default function ReportsPage() {
             getCtr(row.impressions, row.clicks),
             ...(showFinalPurchaseAmount
                 ? [
-                    formatNumber(
-                        Math.floor(
-                            Number(row.final_purchase_amount || 0)
-                            * finalPurchaseMultiplier
-                        )
-                    ),
+                    formatNumber(row.final_purchase_amount),
                 ]
                 : []),
-            formatNumber(getDisplayAdCost(row)),
+            formatNumber(row.ad_cost),
             ...(showProfitColumns
                 ? [
                     formatNumber(row.revenue_amount),
@@ -995,17 +952,12 @@ export default function ReportsPage() {
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{getCtr(row.impressions, row.clicks)}</td>
                                                 {showFinalPurchaseAmount && (
                                                     <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                        {formatNumber(
-                                                            Math.floor(
-                                                                Number(row.final_purchase_amount || 0)
-                                                                * finalPurchaseMultiplier
-                                                            )
-                                                        )}
+                                                        {formatNumber(row.final_purchase_amount)}
                                                     </td>
                                                 )}
 
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
-                                                    {formatNumber(getDisplayAdCost(row))}
+                                                    {formatNumber(row.ad_cost)}
                                                 </td>
 
                                                 {showProfitColumns && (
