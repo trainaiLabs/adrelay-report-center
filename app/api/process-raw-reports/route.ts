@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(
 
 
 export async function POST(req: NextRequest) {
-    console.log('PROCESS_RAW_REPORTS_START')
+
     try {
         const body = await req.json()
         const { sourceId, targetDate } = body
@@ -94,55 +94,24 @@ export async function POST(req: NextRequest) {
 
             if (impressions <= 100) continue
 
-            const rawFinalPurchaseAmount = Number(rawData.final_purchase_amount || 0)
 
-            const isSinbiun =
-                String(placement.name || '').includes('신비운')
-
-            const finalPurchaseAmount = isSinbiun
-                ? Math.floor(rawFinalPurchaseAmount * 0.9)
-                : rawFinalPurchaseAmount
-
-            const revenueOption = placement.revenue_option
-            const revenueOptionValue = Number(placement.revenue_option_value || 0)
-
-            const adCost =
-                revenueOption === 'CPS'
-                    ? Math.floor(finalPurchaseAmount * (revenueOptionValue / 100))
-                    : Math.floor((impressions / 1000) * revenueOptionValue)
-
-            const revenueAmount = Number(rawData.revenue_amount || 0)
-            const finalProfitAmount = revenueAmount - adCost
-
-            console.log('PROCESS_CHECK', {
-                externalName,
-                placementName: placement.name,
-                isSinbiun,
-                rawFinalPurchaseAmount,
-                finalPurchaseAmount,
-                revenueOption,
-                revenueOptionValue,
-                adCost,
-            })
 
             reportRows.push({
                 report_date: raw.report_date,
                 syndicator_id: placement.syndicator_id,
                 media_company_id: placement.media_company_id,
                 placement_id: placement.id,
-                revenue_option: revenueOption,
-                revenue_option_value: revenueOptionValue,
+                revenue_option: placement.revenue_option,
+                revenue_option_value: placement.revenue_option_value,
 
                 impressions,
                 clicks: Number(rawData.clicks || 0),
 
-                purchase_amount: finalPurchaseAmount,
+                purchase_amount: Number(rawData.final_purchase_amount || 0),
                 cancel_amount: 0,
-                final_purchase_amount: finalPurchaseAmount,
+                final_purchase_amount: Number(rawData.final_purchase_amount || 0),
 
-                ad_cost: adCost,
-                revenue_amount: revenueAmount,
-                final_profit_amount: finalProfitAmount,
+                revenue_amount: Number(rawData.revenue_amount || 0),
 
                 source: raw.ad_external_api_sources?.provider_code || 'api',
                 memo: `자동수집: ${externalName}`,
