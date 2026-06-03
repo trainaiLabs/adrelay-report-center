@@ -369,17 +369,41 @@ export default function ReportsPage() {
 
         const { data: syndicatorData } = await syndicatorQuery
 
-        const { data: mediaData } = await supabase
+        let mediaQuery = supabase
             .from('ad_media_companies')
             .select('id, name')
             .order('name')
 
-        if (syndicatorData) {
-            setSyndicators(syndicatorData)
-        }
+        if (
+            (adminRole === 'manager_readonly' || adminRole === 'syndicator') &&
+            allowedSyndicatorIds.length > 0
+        ) {
+            const { data: placementData } = await supabase
+                .from('ad_placements')
+                .select('media_company_id')
+                .in('syndicator_id', allowedSyndicatorIds)
 
-        if (mediaData) {
-            setMediaCompanies(mediaData)
+            const mediaCompanyIds = Array.from(
+                new Set((placementData ?? []).map((item) => item.media_company_id))
+            )
+
+            if (mediaCompanyIds.length === 0) {
+                setMediaCompanies([])
+            } else {
+                mediaQuery = mediaQuery.in('id', mediaCompanyIds)
+
+                const { data: mediaData } = await mediaQuery
+
+                if (mediaData) {
+                    setMediaCompanies(mediaData)
+                }
+            }
+        } else {
+            const { data: mediaData } = await mediaQuery
+
+            if (mediaData) {
+                setMediaCompanies(mediaData)
+            }
         }
     }
 
