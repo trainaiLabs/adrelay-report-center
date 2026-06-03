@@ -548,9 +548,16 @@ export default function ReportsPage() {
 
         link.href = url
         link.download = `adrelay_report_${today}.csv`
-        link.click()
+        link.style.display = 'none'
 
-        URL.revokeObjectURL(url)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+
+        setTimeout(() => {
+            URL.revokeObjectURL(url)
+        }, 1000)
+
     }
 
     async function handleDownloadSettlementReport() {
