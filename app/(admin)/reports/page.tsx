@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Pagination from '@/components/pagination'
 import { supabase } from '@/lib/supabase/client'
+import { saveAs } from 'file-saver'
 import {
     Download,
     FileDown,
@@ -541,22 +542,9 @@ export default function ReportsPage() {
             type: 'text/csv;charset=utf-8;',
         })
 
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-
         const today = new Date().toISOString().slice(0, 10)
 
-        link.href = url
-        link.download = `adrelay_report_${today}.csv`
-        link.style.display = 'none'
-
-        document.body.appendChild(link)
-        link.click()
-        link.remove()
-
-        setTimeout(() => {
-            URL.revokeObjectURL(url)
-        }, 1000)
+        saveAs(blob, `adrelay_report_${today}.csv`)
 
     }
 
@@ -603,22 +591,7 @@ export default function ReportsPage() {
 
             const blob = await response.blob()
 
-            const url = window.URL.createObjectURL(blob)
-
-            const link = document.createElement('a')
-
-            link.href = url
-
-            link.download =
-                `${syndicatorName}_${monthText}_정산서.xlsx`
-
-            document.body.appendChild(link)
-
-            link.click()
-
-            link.remove()
-
-            window.URL.revokeObjectURL(url)
+            saveAs(blob, `${syndicatorName}_${monthText}_정산서.xlsx`)
         } catch (error) {
             console.error(error)
             alert('정산 리포트 다운로드 실패')
