@@ -219,10 +219,19 @@ export default function ReportsPage() {
         }
 
         if (searchParams.placementKeyword.trim()) {
-            const { data: placementData } = await supabase
+            let placementQuery = supabase
                 .from('ad_placements')
                 .select('id')
                 .ilike('name', `%${searchParams.placementKeyword.trim()}%`)
+
+            if (
+                (adminRole === 'manager_readonly' || adminRole === 'syndicator') &&
+                allowedSyndicatorIds.length > 0
+            ) {
+                placementQuery = placementQuery.in('syndicator_id', allowedSyndicatorIds)
+            }
+
+            const { data: placementData } = await placementQuery
 
             const placementIds = (placementData ?? []).map((item) => item.id)
 
@@ -783,23 +792,25 @@ export default function ReportsPage() {
                             />
                         </div>
 
-                        <div>
-                            <label className="mb-1 block text-xs text-zinc-500">신디사</label>
-                            <select
-                                value={filters.syndicatorId}
-                                onChange={(e) =>
-                                    setFilters({ ...filters, syndicatorId: e.target.value })
-                                }
-                                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                            >
-                                <option value="">전체</option>
-                                {syndicators.map((item) => (
-                                    <option key={item.id} value={item.id}>
-                                        {item.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        {!isSyndicator && (
+                            <div>
+                                <label className="mb-1 block text-xs text-zinc-500">신디사</label>
+                                <select
+                                    value={filters.syndicatorId}
+                                    onChange={(e) =>
+                                        setFilters({ ...filters, syndicatorId: e.target.value })
+                                    }
+                                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                >
+                                    <option value="">전체</option>
+                                    {syndicators.map((item) => (
+                                        <option key={item.id} value={item.id}>
+                                            {item.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         <div>
                             <label className="mb-1 block text-xs text-zinc-500">매체</label>
