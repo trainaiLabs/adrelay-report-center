@@ -45,6 +45,7 @@ export default function Pagination({
                     <option value={20}>20개씩</option>
                     <option value={50}>50개씩</option>
                     <option value={100}>100개씩</option>
+                    <option value={1000}>1000개씩</option>
                 </select>
 
                 <div className="flex items-center gap-1">
