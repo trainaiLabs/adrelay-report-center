@@ -379,6 +379,10 @@ export default function ReportsPage() {
 
         const { data: syndicatorData } = await syndicatorQuery
 
+        if (syndicatorData) {
+            setSyndicators(syndicatorData)
+        }
+
         let mediaQuery = supabase
             .from('ad_media_companies')
             .select('id, name')
