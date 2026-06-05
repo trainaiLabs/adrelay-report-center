@@ -595,8 +595,6 @@ export default function ReportsPage() {
 
             const blob = await response.blob()
 
-            alert(`파일크기: ${blob.size}`)
-
             saveAs(blob, `${syndicatorName}_${monthText}_정산서.xlsx`)
         } catch (error) {
             console.error(error)
