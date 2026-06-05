@@ -499,10 +499,9 @@ export default function ApiKeysPage() {
                             className="inline-flex items-center justify-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
                         >
                             <Plus size={16} />
-                            API KEY 등록
+                            수집 API KEY 등록
                         </button>
-                    </div>
-                    <div className="flex justify-end">
+
                         <button
                             onClick={() => setReportModalOpen(true)}
                             className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
@@ -510,6 +509,7 @@ export default function ApiKeysPage() {
                             <Plus size={16} />
                             리포트 API KEY 발급
                         </button>
+
                     </div>
                 </section>
 
