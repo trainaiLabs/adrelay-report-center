@@ -502,6 +502,15 @@ export default function ApiKeysPage() {
                             API KEY 등록
                         </button>
                     </div>
+                    <div className="flex justify-end">
+                        <button
+                            onClick={() => setReportModalOpen(true)}
+                            className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                        >
+                            <Plus size={16} />
+                            리포트 API KEY 발급
+                        </button>
+                    </div>
                 </section>
 
                 <section className="flex gap-2">
@@ -525,15 +534,7 @@ export default function ApiKeysPage() {
                         리포트 API KEY
                     </button>
                 </section>
-                <div className="flex justify-end">
-                    <button
-                        onClick={() => setReportModalOpen(true)}
-                        className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
-                    >
-                        <Plus size={16} />
-                        리포트 API KEY 발급
-                    </button>
-                </div>
+
                 {activeTab === 'collect' && (
                     <>
                         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
