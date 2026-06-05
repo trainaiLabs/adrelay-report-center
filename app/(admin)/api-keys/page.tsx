@@ -494,22 +494,23 @@ export default function ApiKeysPage() {
                             </p>
                         </div>
 
-                        <button
-                            onClick={openCreateModal}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
-                        >
-                            <Plus size={16} />
-                            수집 API KEY 등록
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={openCreateModal}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                            >
+                                <Plus size={16} />
+                                수집 API KEY 등록
+                            </button>
 
-                        <button
-                            onClick={() => setReportModalOpen(true)}
-                            className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
-                        >
-                            <Plus size={16} />
-                            리포트 API KEY 발급
-                        </button>
-
+                            <button
+                                onClick={() => setReportModalOpen(true)}
+                                className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                            >
+                                <Plus size={16} />
+                                리포트 API KEY 발급
+                            </button>
+                        </div>
                     </div>
                 </section>
 
