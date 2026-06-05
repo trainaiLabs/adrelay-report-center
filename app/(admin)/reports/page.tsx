@@ -588,17 +588,14 @@ export default function ReportsPage() {
                     }),
                 }
             )
-            console.log(response.status)
-            console.log(response.headers.get('content-type'))
-            console.log(response.headers.get('content-disposition'))
 
             if (!response.ok) {
                 throw new Error('정산 리포트 생성 실패')
             }
 
             const blob = await response.blob()
-            console.log(blob.size)
-            console.log(blob.type)
+
+            alert(`파일크기: ${blob.size}`)
 
             saveAs(blob, `${syndicatorName}_${monthText}_정산서.xlsx`)
         } catch (error) {
