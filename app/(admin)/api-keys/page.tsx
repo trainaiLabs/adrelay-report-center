@@ -89,6 +89,12 @@ export default function ApiKeysPage() {
 
     const [activeTab, setActiveTab] = useState<'collect' | 'report'>('collect')
     const [reportKeys, setReportKeys] = useState<ReportApiKeyItem[]>([])
+    const [reportModalOpen, setReportModalOpen] = useState(false)
+    const [reportSaving, setReportSaving] = useState(false)
+    const [reportForm, setReportForm] = useState({
+        syndicator_id: '',
+        memo: '',
+    })
 
     useEffect(() => {
         loadSyndicators()
@@ -257,6 +263,47 @@ export default function ApiKeysPage() {
         }
 
         alert('재발급되었습니다.')
+        loadReportKeys()
+    }
+
+    async function handleCreateReportKey() {
+        if (!reportForm.syndicator_id) {
+            alert('신디사를 선택해 주세요.')
+            return
+        }
+
+        const exists = reportKeys.some(
+            (item) =>
+                item.syndicator_id === reportForm.syndicator_id &&
+                item.is_active
+        )
+
+        if (exists) {
+            alert('이미 활성화된 리포트 API KEY가 있습니다.')
+            return
+        }
+
+        setReportSaving(true)
+
+        const newKey = `ar_${crypto.randomUUID().replaceAll('-', '')}`
+
+        const { error } = await supabase.from('ad_report_api_keys').insert({
+            syndicator_id: reportForm.syndicator_id,
+            api_key: newKey,
+            memo: reportForm.memo.trim() || null,
+            is_active: true,
+        })
+
+        setReportSaving(false)
+
+        if (error) {
+            alert(`발급 실패: ${error.message}`)
+            return
+        }
+
+        alert('리포트 API KEY가 발급되었습니다.')
+        setReportModalOpen(false)
+        setReportForm({ syndicator_id: '', memo: '' })
         loadReportKeys()
     }
 
@@ -478,6 +525,15 @@ export default function ApiKeysPage() {
                         리포트 API KEY
                     </button>
                 </section>
+                <div className="flex justify-end">
+                    <button
+                        onClick={() => setReportModalOpen(true)}
+                        className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                    >
+                        <Plus size={16} />
+                        리포트 API KEY 발급
+                    </button>
+                </div>
                 {activeTab === 'collect' && (
                     <>
                         <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
@@ -808,7 +864,6 @@ export default function ApiKeysPage() {
                                     <tr>
                                         <th className="px-6 py-3 text-left">신디사</th>
                                         <th className="px-4 py-3 text-left">API KEY</th>
-                                        <th className="px-4 py-3 text-left">예제 URL</th>
                                         <th className="px-4 py-3 text-center">호출수</th>
                                         <th className="px-4 py-3 text-left">마지막 호출</th>
                                         <th className="px-4 py-3 text-center">마지막 응답</th>
@@ -832,11 +887,6 @@ export default function ApiKeysPage() {
                                                 </td>
                                                 <td className="px-4 py-3 font-mono text-xs">
                                                     {item.api_key}
-                                                </td>
-                                                <td className="max-w-[360px] px-4 py-3">
-                                                    <div className="truncate" title={getReportApiUrl(item.api_key)}>
-                                                        {getReportApiUrl(item.api_key)}
-                                                    </div>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     {item.call_count ?? 0}
@@ -1060,6 +1110,74 @@ export default function ApiKeysPage() {
                                 className="rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800 disabled:opacity-50"
                             >
                                 {saving ? '저장 중...' : editingItem ? '수정 저장' : '저장'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {reportModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+                        <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
+                            <h2 className="font-semibold">리포트 API KEY 발급</h2>
+
+                            <button
+                                onClick={() => setReportModalOpen(false)}
+                                className="rounded-lg p-1 hover:bg-zinc-100"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4 p-5">
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">신디사 *</label>
+                                <select
+                                    value={reportForm.syndicator_id}
+                                    onChange={(e) =>
+                                        setReportForm({
+                                            ...reportForm,
+                                            syndicator_id: e.target.value,
+                                        })
+                                    }
+                                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                >
+                                    <option value="">신디사 선택</option>
+                                    {syndicators.map((item) => (
+                                        <option key={item.id} value={item.id}>
+                                            {item.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">비고</label>
+                                <textarea
+                                    value={reportForm.memo}
+                                    onChange={(e) =>
+                                        setReportForm({ ...reportForm, memo: e.target.value })
+                                    }
+                                    className="min-h-20 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                    placeholder="예: 중앙애드플래닝 리포트 제공용"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2 border-t border-zinc-200 px-5 py-4">
+                            <button
+                                onClick={() => setReportModalOpen(false)}
+                                className="rounded-lg border border-zinc-200 px-4 py-2 text-sm hover:bg-zinc-50"
+                            >
+                                취소
+                            </button>
+
+                            <button
+                                onClick={handleCreateReportKey}
+                                disabled={reportSaving}
+                                className="rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800 disabled:opacity-50"
+                            >
+                                {reportSaving ? '발급 중...' : '발급'}
                             </button>
                         </div>
                     </div>
