@@ -29,9 +29,9 @@ export default function Pagination({
     }
 
     return (
-        <div className="flex flex-col gap-4 border-t border-zinc-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-zinc-500">
-                총 <span className="font-semibold">{totalCount.toLocaleString()}</span>
+        <div className="flex flex-col gap-4 border-t border-zinc-300 px-4 py-4 text-zinc-950 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-zinc-800">
+                총 <span className="font-semibold text-zinc-950">{totalCount.toLocaleString()}</span>
                 건 · {page} / {totalPages} 페이지
             </div>
 
@@ -39,7 +39,7 @@ export default function Pagination({
                 <select
                     value={pageSize}
                     onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                    className="rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                    className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-950"
                 >
                     <option value={10}>10개씩</option>
                     <option value={20}>20개씩</option>
@@ -52,7 +52,7 @@ export default function Pagination({
                     <button
                         onClick={() => onPageChange(page - 1)}
                         disabled={page <= 1}
-                        className="rounded-lg border border-zinc-200 px-3 py-2 text-sm hover:bg-zinc-50 disabled:opacity-40"
+                        className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-50 disabled:text-zinc-400 disabled:opacity-60"
                     >
                         이전
                     </button>
@@ -61,13 +61,13 @@ export default function Pagination({
                         <>
                             <button
                                 onClick={() => onPageChange(1)}
-                                className="rounded-lg border border-zinc-200 px-3 py-2 text-sm hover:bg-zinc-50"
+                                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-50"
                             >
                                 1
                             </button>
 
                             {startPage > 2 && (
-                                <span className="px-2 text-sm text-zinc-400">...</span>
+                                <span className="px-2 text-sm text-zinc-700">...</span>
                             )}
                         </>
                     )}
@@ -76,9 +76,9 @@ export default function Pagination({
                         <button
                             key={pageNumber}
                             onClick={() => onPageChange(pageNumber)}
-                            className={`rounded-lg px-3 py-2 text-sm ${pageNumber === page
-                                ? 'bg-black text-white'
-                                : 'border border-zinc-200 hover:bg-zinc-50'
+                            className={`rounded-lg px-3 py-2 text-sm font-medium ${pageNumber === page
+                                    ? 'bg-black text-white'
+                                    : 'border border-zinc-300 text-zinc-950 hover:bg-zinc-50'
                                 }`}
                         >
                             {pageNumber}
@@ -88,12 +88,12 @@ export default function Pagination({
                     {endPage < totalPages && (
                         <>
                             {endPage < totalPages - 1 && (
-                                <span className="px-2 text-sm text-zinc-400">...</span>
+                                <span className="px-2 text-sm text-zinc-700">...</span>
                             )}
 
                             <button
                                 onClick={() => onPageChange(totalPages)}
-                                className="rounded-lg border border-zinc-200 px-3 py-2 text-sm hover:bg-zinc-50"
+                                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-50"
                             >
                                 {totalPages}
                             </button>
@@ -103,7 +103,7 @@ export default function Pagination({
                     <button
                         onClick={() => onPageChange(page + 1)}
                         disabled={page >= totalPages}
-                        className="rounded-lg border border-zinc-200 px-3 py-2 text-sm hover:bg-zinc-50 disabled:opacity-40"
+                        className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-50"
                     >
                         다음
                     </button>

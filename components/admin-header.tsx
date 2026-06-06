@@ -148,10 +148,10 @@ export default function AdminHeader() {
                     </div>
 
                     <div>
-                        <h1 className="text-xl font-bold">
+                        <h1 className="text-xl font-bold text-zinc-950">
                             AdRelay Report Center
                         </h1>
-                        <p className="text-sm text-zinc-500">
+                        <p className="text-sm font-medium text-zinc-800">
                             광고 리포트 관리자
                         </p>
                     </div>
@@ -163,10 +163,10 @@ export default function AdminHeader() {
                         className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-left hover:bg-zinc-50"
                     >
                         <div>
-                            <div className="text-sm font-medium">
+                            <div className="text-sm font-semibold text-zinc-950">
                                 관리자명: {profile?.name ?? '-'}
                             </div>
-                            <div className="text-sm text-zinc-500">
+                            <div className="text-sm font-medium text-zinc-800">
                                 권한: {profile ? getRoleLabel(profile.role) : '-'}
                             </div>
                         </div>

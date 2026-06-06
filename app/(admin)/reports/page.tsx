@@ -721,18 +721,18 @@ export default function ReportsPage() {
                         <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={handleDownloadCsv}
-                                className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm hover:bg-zinc-50"
+                                className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-50"
                             >
-                                <Download size={16} />
+                                <Download size={16} className="text-zinc-800" />
                                 엑셀 다운로드
                             </button>
 
                             {canEdit && (
                                 <button
                                     onClick={handleDownloadSettlementReport}
-                                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm hover:bg-zinc-50"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-50"
                                 >
-                                    <FileDown size={16} />
+                                    <FileDown size={16} className="text-zinc-800" />
                                     정산리포트
                                 </button>
                             )}
@@ -740,7 +740,7 @@ export default function ReportsPage() {
                             {canEdit && (
                                 <button
                                     onClick={() => setModalOpen(true)}
-                                    className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
                                 >
                                     <Plus size={16} />
                                     리포트 등록
@@ -753,38 +753,38 @@ export default function ReportsPage() {
                 <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-6">
                         <div>
-                            <label className="mb-1 block text-xs text-zinc-500">시작일</label>
+                            <label className="mb-1 block text-xs text-zinc-700">시작일</label>
                             <input
                                 type="date"
                                 value={filters.startDate}
                                 onChange={(e) =>
                                     setFilters({ ...filters, startDate: e.target.value })
                                 }
-                                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-950"
                             />
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-xs text-zinc-500">종료일</label>
+                            <label className="mb-1 block text-xs text-zinc-700">종료일</label>
                             <input
                                 type="date"
                                 value={filters.endDate}
                                 onChange={(e) =>
                                     setFilters({ ...filters, endDate: e.target.value })
                                 }
-                                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-950"
                             />
                         </div>
 
                         {!isSyndicator && (
                             <div>
-                                <label className="mb-1 block text-xs text-zinc-500">신디사</label>
+                                <label className="mb-1 block text-xs text-zinc-700">신디사</label>
                                 <select
                                     value={filters.syndicatorId}
                                     onChange={(e) =>
                                         setFilters({ ...filters, syndicatorId: e.target.value })
                                     }
-                                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-950"
                                 >
                                     <option value="">전체</option>
                                     {syndicators.map((item) => (
@@ -797,13 +797,13 @@ export default function ReportsPage() {
                         )}
 
                         <div>
-                            <label className="mb-1 block text-xs text-zinc-500">매체</label>
+                            <label className="mb-1 block text-xs text-zinc-700">매체</label>
                             <select
                                 value={filters.mediaCompanyId}
                                 onChange={(e) =>
                                     setFilters({ ...filters, mediaCompanyId: e.target.value })
                                 }
-                                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-950"
                             >
                                 <option value="">전체</option>
                                 {mediaCompanies.map((item) => (
@@ -815,7 +815,7 @@ export default function ReportsPage() {
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-xs text-zinc-500">지면명</label>
+                            <label className="mb-1 block text-xs text-zinc-700">지면명</label>
                             <input
                                 value={filters.placementKeyword}
                                 onChange={(e) =>
@@ -828,7 +828,7 @@ export default function ReportsPage() {
                                     }
                                 }}
                                 placeholder="지면 검색"
-                                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-950"
                             />
                         </div>
 
@@ -856,7 +856,7 @@ export default function ReportsPage() {
 
                 <section className="hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:block">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm leading-tight">
+                        <table className="w-full text-sm text-zinc-950">
                             <thead className="border-b border-zinc-200 bg-zinc-100 text-zinc-600">
                                 <tr>
                                     <th className="pl-4 pr-4 py-3 text-center text-sm font-semibold">날짜</th>
