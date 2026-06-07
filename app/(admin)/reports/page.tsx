@@ -93,13 +93,13 @@ export default function ReportsPage() {
 
 
     function getDisplayRevenueOption(row: ReportRow) {
-        return row.ad_placements?.revenue_option ?? row.revenue_option
+        return row.revenue_option ?? row.ad_placements?.revenue_option ?? ''
     }
 
     function getDisplayRevenueOptionValue(row: ReportRow) {
         return Number(
-            row.ad_placements?.revenue_option_value ??
             row.revenue_option_value ??
+            row.ad_placements?.revenue_option_value ??
             0
         )
     }
@@ -1038,7 +1038,7 @@ export default function ReportsPage() {
                                             {row.ad_media_companies?.name ?? '-'} / {row.ad_placements?.name ?? '-'}
                                         </div>
                                         <div className="mt-1 text-sm text-zinc-500">
-                                            {row.ad_syndicators?.name ?? '-'} · {row.revenue_option}
+                                            {row.ad_syndicators?.name ?? '-'} · {getDisplayRevenueOption(row)}
                                         </div>
                                     </div>
 
