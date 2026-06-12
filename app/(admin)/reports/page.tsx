@@ -133,6 +133,7 @@ export default function ReportsPage() {
     const [form, setForm] = useState({
         report_date: '',
         placement_id: '',
+        revenue_option_value: '',
         impressions: '',
         clicks: '',
         final_purchase_amount: '',
@@ -606,6 +607,7 @@ export default function ReportsPage() {
         setForm({
             report_date: '',
             placement_id: '',
+            revenue_option_value: '',
             impressions: '',
             clicks: '',
             final_purchase_amount: '',
@@ -622,6 +624,7 @@ export default function ReportsPage() {
         setForm({
             report_date: row.report_date,
             placement_id: row.placement_id,
+            revenue_option_value: String(row.revenue_option_value ?? ''),
             impressions: String(row.impressions ?? ''),
             clicks: String(row.clicks ?? ''),
             final_purchase_amount: String(row.final_purchase_amount ?? ''),
@@ -663,19 +666,41 @@ export default function ReportsPage() {
 
         setSaving(true)
 
+        const revenueOptionValue = Number(form.revenue_option_value || 0)
+
+        const impressions = Number(form.impressions || 0)
+
+        const clicks = Number(form.clicks || 0)
+
+        const finalPurchaseAmount = Number(
+            form.final_purchase_amount || 0
+        )
+
+        const revenueAmount = Number(
+            form.revenue_amount || 0
+        )
+
+        const adCost =
+            selectedPlacement.revenue_option === 'CPS'
+                ? finalPurchaseAmount * revenueOptionValue / 100
+                : impressions / 1000 * revenueOptionValue
+
+        const finalProfitAmount =
+            revenueAmount - adCost
+
         const payload = {
             report_date: form.report_date,
             syndicator_id: selectedPlacement.syndicator_id,
             media_company_id: selectedPlacement.media_company_id,
             placement_id: selectedPlacement.id,
-            revenue_option: selectedPlacement.revenue_option,
-            revenue_option_value: selectedPlacement.revenue_option_value,
-            impressions: Number(form.impressions || 0),
-            clicks: Number(form.clicks || 0),
-            purchase_amount: Number(form.final_purchase_amount || 0),
-            cancel_amount: 0,
-            final_purchase_amount: Number(form.final_purchase_amount || 0),
-            revenue_amount: Number(form.revenue_amount || 0),
+            revenue_option_value: revenueOptionValue,
+            impressions,
+            clicks,
+            purchase_amount: finalPurchaseAmount,
+            final_purchase_amount: finalPurchaseAmount,
+            ad_cost: adCost,
+            revenue_amount: revenueAmount,
+            final_profit_amount: finalProfitAmount,
             source: 'manual',
             memo: form.memo.trim() || null,
         }
@@ -1116,9 +1141,21 @@ export default function ReportsPage() {
                                 <label className="mb-1 block text-sm font-medium">지면 *</label>
                                 <select
                                     value={form.placement_id}
-                                    onChange={(e) =>
-                                        setForm({ ...form, placement_id: e.target.value })
-                                    }
+                                    onChange={(e) => {
+                                        const placementId = e.target.value
+
+                                        const placement = placements.find(
+                                            (item) => item.id === placementId
+                                        )
+
+                                        setForm({
+                                            ...form,
+                                            placement_id: placementId,
+                                            revenue_option_value: placement
+                                                ? String(placement.revenue_option_value ?? '')
+                                                : '',
+                                        })
+                                    }}
                                     className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
                                 >
                                     <option value="">지면 선택</option>
@@ -1153,6 +1190,33 @@ export default function ReportsPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {selectedPlacement && (
+                                <div className="rounded-xl bg-zinc-50 p-4 text-sm">
+                                    ...
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">
+                                    리포트 적용 단가
+                                </label>
+
+                                <input
+                                    type="number"
+                                    value={form.revenue_option_value}
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            revenue_option_value: e.target.value,
+                                        })
+                                    }
+                                    className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                                    placeholder="0"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2"></div>
 
                             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                                 <div>
