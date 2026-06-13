@@ -222,8 +222,11 @@ export default function ApiKeysPage() {
         setReportKeys(merged as unknown as ReportApiKeyItem[])
     }
 
-    function getReportApiUrl(apiKey: string) {
-        return `https://reports.adrelay.kr/api/public/reports?apiKey=${apiKey}&startDate=2026-05-01&endDate=2026-05-31`
+    function getReportApiExample(apiKey: string) {
+        return `GET https://reports.adrelay.kr/api/public/reports?startDate=2026-05-01&endDate=2026-05-31
+
+Header
+x-api-key: ${apiKey}`
     }
 
     async function copyText(value: string) {
@@ -250,7 +253,10 @@ export default function ApiKeysPage() {
 
         if (!ok) return
 
-        const newKey = `ar_${crypto.randomUUID().replaceAll('-', '')}`
+        const newKey =
+            'arpk_' +
+            crypto.randomUUID().replaceAll('-', '') +
+            crypto.randomUUID().replaceAll('-', '')
 
         const { error } = await supabase
             .from('ad_report_api_keys')
@@ -285,7 +291,10 @@ export default function ApiKeysPage() {
 
         setReportSaving(true)
 
-        const newKey = `ar_${crypto.randomUUID().replaceAll('-', '')}`
+        const newKey =
+            'arpk_' +
+            crypto.randomUUID().replaceAll('-', '') +
+            crypto.randomUUID().replaceAll('-', '')
 
         const { error } = await supabase.from('ad_report_api_keys').insert({
             syndicator_id: reportForm.syndicator_id,
@@ -829,9 +838,15 @@ export default function ApiKeysPage() {
                                 </div>
 
                                 <div>
+                                    <span className="font-semibold">필수 헤더:</span>
+                                    <ul className="mt-1 list-disc pl-5">
+                                        <li>x-api-key: 신디사별 발급 API KEY</li>
+                                    </ul>
+                                </div>
+
+                                <div>
                                     <span className="font-semibold">필수 파라미터:</span>
                                     <ul className="mt-1 list-disc pl-5">
-                                        <li>apiKey: 신디사별 발급 API KEY</li>
                                         <li>startDate: 조회 시작일, 예: 2026-05-01</li>
                                         <li>endDate: 조회 종료일, 예: 2026-05-31</li>
                                     </ul>
@@ -839,8 +854,11 @@ export default function ApiKeysPage() {
 
                                 <div>
                                     <span className="font-semibold">호출 예시:</span>
-                                    <div className="mt-1 overflow-x-auto rounded bg-white p-3 font-mono text-xs">
-                                        https://reports.adrelay.kr/api/public/reports?apiKey=발급키&amp;startDate=2026-05-01&amp;endDate=2026-05-31
+                                    <div className="mt-1 overflow-x-auto rounded bg-white p-3 font-mono text-xs whitespace-pre-wrap">
+                                        {`GET https://reports.adrelay.kr/api/public/reports?startDate=2026-05-01&endDate=2026-05-31
+
+Header
+x-api-key: 발급키`}
                                     </div>
                                 </div>
 
@@ -924,11 +942,11 @@ export default function ApiKeysPage() {
                                                         </button>
 
                                                         <button
-                                                            onClick={() => copyText(getReportApiUrl(item.api_key))}
+                                                            onClick={() => copyText(getReportApiExample(item.api_key))}
                                                             className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs hover:bg-zinc-50"
                                                         >
                                                             <Copy size={14} />
-                                                            URL 복사
+                                                            호출 예시 복사
                                                         </button>
 
                                                         <button

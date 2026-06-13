@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url)
 
-        const apiKey = searchParams.get('apiKey')
+        const apiKey =
+            req.headers.get('x-api-key') ||
+            req.headers.get('X-API-KEY')
         const startDate = formatDate(searchParams.get('startDate'))
         const endDate = formatDate(searchParams.get('endDate'))
 
@@ -24,7 +26,7 @@ export async function GET(req: NextRequest) {
             return Response.json(
                 {
                     success: false,
-                    error: 'apiKey, startDate, endDate가 필요합니다.',
+                    error: 'x-api-key 헤더, startDate, endDate가 필요합니다.',
                 },
                 { status: 400 }
             )
