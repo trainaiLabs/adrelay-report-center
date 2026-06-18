@@ -507,7 +507,7 @@ export async function POST(req: NextRequest) {
         const collectedRows = await collectByProvider(apiKey, startDate, endDate)
 
         const filteredRows = collectedRows.filter(
-            (row) => Number(row.impressions || 0) > 100
+            (row) => Number(row.impressions || 0) >= 50
         )
 
         const rawRows = filteredRows.map((row) => ({
