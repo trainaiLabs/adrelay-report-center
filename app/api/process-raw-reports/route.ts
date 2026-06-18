@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 
             const impressions = Number(rawData.impressions || 0)
 
-            if (impressions <= 100) continue
+            if (impressions <= 50) continue
 
 
 
