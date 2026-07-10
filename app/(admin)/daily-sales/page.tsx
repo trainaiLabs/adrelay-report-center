@@ -405,15 +405,6 @@ export default function DailySalesPage() {
 
                                             <tr className="border-b border-zinc-200">
                                                 <th className="w-32 bg-zinc-50 px-3 py-3 text-left text-sm font-semibold sm:w-48 sm:px-4">
-                                                    광고비
-                                                </th>
-                                                <td className="px-3 py-3 text-right text-sm font-bold tabular-nums sm:px-4">
-                                                    {formatNumber(row.ad_cost)}원
-                                                </td>
-                                            </tr>
-
-                                            <tr className="border-b border-zinc-200">
-                                                <th className="w-32 bg-zinc-50 px-3 py-3 text-left text-sm font-semibold sm:w-48 sm:px-4">
                                                     수익금
                                                 </th>
                                                 <td className="px-3 py-3 text-right text-sm font-bold tabular-nums sm:px-4">
@@ -426,6 +417,15 @@ export default function DailySalesPage() {
                                                     >
                                                         {formatNumber(row.revenue_amount)}원
                                                     </button>
+                                                </td>
+                                            </tr>
+
+                                            <tr className="border-b border-zinc-200">
+                                                <th className="w-32 bg-zinc-50 px-3 py-3 text-left text-sm font-semibold sm:w-48 sm:px-4">
+                                                    광고비
+                                                </th>
+                                                <td className="px-3 py-3 text-right text-sm font-bold tabular-nums sm:px-4">
+                                                    {formatNumber(row.ad_cost)}원
                                                 </td>
                                             </tr>
 
