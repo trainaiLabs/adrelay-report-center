@@ -871,9 +871,6 @@ x-api-key: 발급키`}
                                         <li>impressions: 노출수</li>
                                         <li>clicks: 클릭수</li>
                                         <li>adCost: 광고비</li>
-                                        <li>revenueAmount: 수익금</li>
-                                        <li>finalProfitAmount: 최종수익금</li>
-                                        <li>source: 수집 소스</li>
                                     </ul>
                                 </div>
                             </div>

@@ -64,21 +64,13 @@ export async function GET(req: NextRequest) {
             .select(`
                 report_date,
                 impressions,
-                clicks,
-                purchase_amount,
-                cancel_amount,
-                final_purchase_amount,
-                ad_cost,
-                revenue_amount,
-                final_profit_amount,
-                source,
+                clicks,                                
+                ad_cost,                
                 ad_media_companies (
                     name
                 ),
                 ad_placements (
-                    name,
-                    revenue_option,
-                    revenue_option_value
+                    name,                    
                 )
             `)
             .eq('syndicator_id', keyData.syndicator_id)
@@ -112,17 +104,9 @@ export async function GET(req: NextRequest) {
                 date: row.report_date,
                 mediaName: row.ad_media_companies?.name ?? '',
                 placementName: row.ad_placements?.name ?? '',
-                revenueOption: row.ad_placements?.revenue_option ?? '',
-                revenueOptionValue: row.ad_placements?.revenue_option_value ?? 0,
                 impressions: row.impressions ?? 0,
                 clicks: row.clicks ?? 0,
-                purchaseAmount: row.purchase_amount ?? 0,
-                cancelAmount: row.cancel_amount ?? 0,
-                finalPurchaseAmount: row.final_purchase_amount ?? 0,
                 adCost: row.ad_cost ?? 0,
-                revenueAmount: row.revenue_amount ?? 0,
-                finalProfitAmount: row.final_profit_amount ?? 0,
-                source: row.source ?? '',
             })),
         })
     } catch (error) {
