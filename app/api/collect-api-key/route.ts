@@ -506,7 +506,15 @@ export async function POST(req: NextRequest) {
 
         const collectedRows = await collectByProvider(apiKey, startDate, endDate)
 
-        const filteredRows = collectedRows.filter(
+        // 모든 광고사의 노출수를 5% 감소
+        const IMPRESSION_RATE = 0.95
+
+        const adjustedRows = collectedRows.map((row) => ({
+            ...row,
+            impressions: Math.floor(Number(row.impressions || 0) * IMPRESSION_RATE),
+        }))
+
+        const filteredRows = adjustedRows.filter(
             (row) => Number(row.impressions || 0) >= 50
         )
 
