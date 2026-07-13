@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
                 placementName: row.ad_placements?.name ?? '',
                 impressions: row.impressions ?? 0,
                 clicks: row.clicks ?? 0,
-                adCost: row.ad_cost ?? 0,
+                adCost: Math.round(row.ad_cost ?? 0),
             })),
         })
     } catch (error) {
