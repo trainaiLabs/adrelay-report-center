@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
                     name
                 ),
                 ad_placements (
-                    name,                    
+                    name                
                 )
             `)
             .eq('syndicator_id', keyData.syndicator_id)
