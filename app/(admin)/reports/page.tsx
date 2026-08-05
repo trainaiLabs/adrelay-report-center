@@ -147,8 +147,10 @@ export default function ReportsPage() {
     }, [])
 
     useEffect(() => {
+        if (!adminLoaded) return
+
         loadFilterOptions()
-    }, [adminRole, allowedSyndicatorIds])
+    }, [adminLoaded, adminRole, allowedSyndicatorIds])
 
     useEffect(() => {
         checkGordonSyndicator()
@@ -366,60 +368,103 @@ export default function ReportsPage() {
     }
 
     async function loadFilterOptions() {
+        if (!adminLoaded) return
+
+        const hasRestrictedAccess =
+            adminRole === 'manager_readonly' ||
+            adminRole === 'syndicator'
+
+        // 신디사 또는 조회 전용 관리자인데 연결된 신디사가 없으면
+        // 전체 목록을 보여주지 않고 비워 둡니다.
+        if (hasRestrictedAccess && allowedSyndicatorIds.length === 0) {
+            setSyndicators([])
+            setMediaCompanies([])
+            return
+        }
+
+        // 신디사 목록
         let syndicatorQuery = supabase
             .from('ad_syndicators')
             .select('id, name')
             .order('name')
 
-        if (
-            (adminRole === 'manager_readonly' || adminRole === 'syndicator') &&
-            allowedSyndicatorIds.length > 0
-        ) {
-            syndicatorQuery = syndicatorQuery.in('id', allowedSyndicatorIds)
+        if (hasRestrictedAccess) {
+            syndicatorQuery = syndicatorQuery.in(
+                'id',
+                allowedSyndicatorIds
+            )
         }
 
-        const { data: syndicatorData } = await syndicatorQuery
+        const { data: syndicatorData, error: syndicatorError } =
+            await syndicatorQuery
 
-        if (syndicatorData) {
-            setSyndicators(syndicatorData)
+        if (syndicatorError) {
+            console.error('신디사 필터 조회 실패:', syndicatorError)
+            setSyndicators([])
+        } else {
+            setSyndicators(syndicatorData ?? [])
         }
 
-        let mediaQuery = supabase
-            .from('ad_media_companies')
-            .select('id, name')
-            .order('name')
+        // 신디사 계정 또는 조회 전용 관리자는
+        // 허용된 신디사에 연결된 매체만 조회
+        if (hasRestrictedAccess) {
+            const { data: placementData, error: placementError } =
+                await supabase
+                    .from('ad_placements')
+                    .select('media_company_id')
+                    .in('syndicator_id', allowedSyndicatorIds)
+                    .eq('is_active', true)
 
-        if (
-            (adminRole === 'manager_readonly' || adminRole === 'syndicator') &&
-            allowedSyndicatorIds.length > 0
-        ) {
-            const { data: placementData } = await supabase
-                .from('ad_placements')
-                .select('media_company_id')
-                .in('syndicator_id', allowedSyndicatorIds)
+            if (placementError) {
+                console.error('신디사 매체 연결 조회 실패:', placementError)
+                setMediaCompanies([])
+                return
+            }
 
             const mediaCompanyIds = Array.from(
-                new Set((placementData ?? []).map((item) => item.media_company_id))
+                new Set(
+                    (placementData ?? [])
+                        .map((item) => item.media_company_id)
+                        .filter(Boolean)
+                )
             )
 
             if (mediaCompanyIds.length === 0) {
                 setMediaCompanies([])
-            } else {
-                mediaQuery = mediaQuery.in('id', mediaCompanyIds)
-
-                const { data: mediaData } = await mediaQuery
-
-                if (mediaData) {
-                    setMediaCompanies(mediaData)
-                }
+                return
             }
-        } else {
-            const { data: mediaData } = await mediaQuery
 
-            if (mediaData) {
-                setMediaCompanies(mediaData)
+            const { data: mediaData, error: mediaError } =
+                await supabase
+                    .from('ad_media_companies')
+                    .select('id, name')
+                    .in('id', mediaCompanyIds)
+                    .order('name')
+
+            if (mediaError) {
+                console.error('매체 필터 조회 실패:', mediaError)
+                setMediaCompanies([])
+                return
             }
+
+            setMediaCompanies(mediaData ?? [])
+            return
         }
+
+        // 슈퍼관리자와 전체 관리자는 모든 매체 조회
+        const { data: mediaData, error: mediaError } =
+            await supabase
+                .from('ad_media_companies')
+                .select('id, name')
+                .order('name')
+
+        if (mediaError) {
+            console.error('매체 필터 조회 실패:', mediaError)
+            setMediaCompanies([])
+            return
+        }
+
+        setMediaCompanies(mediaData ?? [])
     }
 
     function formatNumber(value: number) {
