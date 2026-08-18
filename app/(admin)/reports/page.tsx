@@ -471,6 +471,32 @@ export default function ReportsPage() {
         return Math.round(Number(value || 0)).toLocaleString()
     }
 
+    function getCppDailyCost(
+        reportDate: string,
+        monthlyAmount: number
+    ) {
+        const [year, month, day] = reportDate
+            .split('-')
+            .map(Number)
+
+        const daysInMonth = new Date(
+            Date.UTC(year, month, 0)
+        ).getUTCDate()
+
+        const baseDailyCost = Math.floor(
+            monthlyAmount / daysInMonth
+        )
+
+        const remainder =
+            monthlyAmount - baseDailyCost * daysInMonth
+
+        if (day === daysInMonth) {
+            return baseDailyCost + remainder
+        }
+
+        return baseDailyCost
+    }
+
     function mergeReportRows(rows: ReportRow[]) {
         const map = new Map<string, ReportRow>()
 
@@ -565,7 +591,9 @@ export default function ReportsPage() {
             row.ad_placements?.name ?? '',
             getDisplayRevenueOption(row) === 'CPS'
                 ? `${getDisplayRevenueOption(row)}/${getDisplayRevenueOptionValue(row).toFixed(2)}%`
-                : `${getDisplayRevenueOption(row)}/${formatNumber(getDisplayRevenueOptionValue(row))}원`,
+                : getDisplayRevenueOption(row) === 'CPP'
+                    ? `${getDisplayRevenueOption(row)}/${formatNumber(getDisplayRevenueOptionValue(row))}원/월`
+                    : `${getDisplayRevenueOption(row)}/${formatNumber(getDisplayRevenueOptionValue(row))}원`,
             formatNumber(row.impressions),
             formatNumber(row.clicks),
             getCtr(row.impressions, row.clicks),
@@ -604,11 +632,18 @@ export default function ReportsPage() {
             return
         }
 
-        const hasCps = reports.some(
-            (row) => row.revenue_option === 'CPS'
+        const revenueOptions = Array.from(
+            new Set(
+                reports.map((row) =>
+                    getDisplayRevenueOption(row)
+                )
+            )
         )
 
-        const type = hasCps ? 'CPS' : 'CPM'
+        const type =
+            revenueOptions.length === 1
+                ? revenueOptions[0]
+                : 'MIXED'
 
         const firstDate =
             reports[0]?.report_date ?? new Date().toISOString()
@@ -725,10 +760,25 @@ export default function ReportsPage() {
             form.revenue_amount || 0
         )
 
-        const adCost =
-            selectedPlacement.revenue_option === 'CPS'
-                ? finalPurchaseAmount * revenueOptionValue / 100
-                : impressions / 1000 * revenueOptionValue
+        let adCost = 0
+
+        if (selectedPlacement.revenue_option === 'CPS') {
+            adCost =
+                finalPurchaseAmount *
+                revenueOptionValue /
+                100
+        } else if (selectedPlacement.revenue_option === 'CPP') {
+            adCost = getCppDailyCost(
+                form.report_date,
+                revenueOptionValue
+            )
+        } else {
+            // CPM
+            adCost =
+                impressions /
+                1000 *
+                revenueOptionValue
+        }
 
         const finalProfitAmount =
             revenueAmount - adCost
@@ -1034,7 +1084,9 @@ export default function ReportsPage() {
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
                                                     {getDisplayRevenueOption(row) === 'CPS'
                                                         ? `${getDisplayRevenueOptionValue(row).toFixed(2)}%`
-                                                        : `${formatNumber(getDisplayRevenueOptionValue(row))}원`}
+                                                        : getDisplayRevenueOption(row) === 'CPP'
+                                                            ? `${formatNumber(getDisplayRevenueOptionValue(row))}원/월`
+                                                            : `${formatNumber(getDisplayRevenueOptionValue(row))}원`}
                                                 </td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.impressions)}</td>
                                                 <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{formatNumber(row.clicks)}</td>
@@ -1229,9 +1281,13 @@ export default function ReportsPage() {
                                         단가/%:{' '}
                                         {selectedPlacement.revenue_option === 'CPS'
                                             ? `${selectedPlacement.revenue_option_value}%`
-                                            : `${Number(
-                                                selectedPlacement.revenue_option_value
-                                            ).toLocaleString()}원`}
+                                            : selectedPlacement.revenue_option === 'CPP'
+                                                ? `${Number(
+                                                    selectedPlacement.revenue_option_value
+                                                ).toLocaleString()}원/월`
+                                                : `${Number(
+                                                    selectedPlacement.revenue_option_value
+                                                ).toLocaleString()}원`}
                                     </div>
                                 </div>
                             )}
@@ -1244,7 +1300,9 @@ export default function ReportsPage() {
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium">
-                                    리포트 적용 단가
+                                    {selectedPlacement?.revenue_option === 'CPP'
+                                        ? '리포트 적용 월 고정금액'
+                                        : '리포트 적용 단가'}
                                 </label>
 
                                 <input

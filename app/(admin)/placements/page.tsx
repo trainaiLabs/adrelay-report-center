@@ -156,6 +156,10 @@ export default function PlacementsPage() {
             return `${value}%`
         }
 
+        if (option === 'CPP') {
+            return `${Number(value).toLocaleString()}원/월`
+        }
+
         return `${Number(value).toLocaleString()}원`
     }
 
@@ -578,12 +582,17 @@ export default function PlacementsPage() {
                                         <option value="CPM">CPM</option>
                                         <option value="CPC">CPC</option>
                                         <option value="CPS">CPS</option>
+                                        <option value="CPP">CPP</option>
                                     </select>
                                 </div>
 
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">
-                                        {form.revenue_option === 'CPS' ? '수수료율 %' : '단가'}
+                                        {form.revenue_option === 'CPS'
+                                            ? '수수료율 %'
+                                            : form.revenue_option === 'CPP'
+                                                ? '월 고정금액'
+                                                : '단가'}
                                     </label>
                                     <input
                                         type="number"
@@ -595,7 +604,13 @@ export default function PlacementsPage() {
                                             })
                                         }
                                         className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                                        placeholder={form.revenue_option === 'CPS' ? '예: 15' : '예: 3000'}
+                                        placeholder={
+                                            form.revenue_option === 'CPS'
+                                                ? '예: 15'
+                                                : form.revenue_option === 'CPP'
+                                                    ? '예: 3000000'
+                                                    : '예: 3000'
+                                        }
                                     />
                                 </div>
                             </div>

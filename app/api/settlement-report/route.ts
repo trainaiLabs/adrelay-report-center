@@ -258,7 +258,16 @@ export async function POST(req: NextRequest) {
                 ws.getCell(rowIndex, 6).value = impressions
                 ws.getCell(rowIndex, 7).value = clicks
                 ws.getCell(rowIndex, 8).value = getCtr(clicks, impressions)
-                ws.getCell(rowIndex, 9).value = Number(row.revenue_option_value || 0)
+                if (type === 'MIXED') {
+                    ws.getCell(rowIndex, 9).value =
+                        row.revenue_option === 'CPP'
+                            ? `CPP / ${Number(row.revenue_option_value || 0).toLocaleString()}원/월`
+                            : `${row.revenue_option} / ${Number(row.revenue_option_value || 0).toLocaleString()}원`
+                } else {
+                    ws.getCell(rowIndex, 9).value =
+                        Number(row.revenue_option_value || 0)
+                }
+
                 ws.getCell(rowIndex, 10).value = amount
 
                 styleRange(ws, rowIndex, 2, 10)
@@ -266,7 +275,9 @@ export async function POST(req: NextRequest) {
                 ws.getCell(rowIndex, 8).numFmt = '0.00%'
                 ws.getCell(rowIndex, 6).numFmt = '#,##0'
                 ws.getCell(rowIndex, 7).numFmt = '#,##0'
-                ws.getCell(rowIndex, 9).numFmt = '#,##0'
+                if (type !== 'MIXED') {
+                    ws.getCell(rowIndex, 9).numFmt = '#,##0'
+                }
                 ws.getCell(rowIndex, 10).numFmt = '#,##0'
             }
 

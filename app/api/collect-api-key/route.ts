@@ -29,6 +29,48 @@ function toNumber(value: unknown) {
     return Number(String(value).replaceAll(',', '').replaceAll('%', '')) || 0
 }
 
+function getDateRange(startDate: string, endDate: string) {
+    const dates: string[] = []
+
+    const current = new Date(`${startDate}T00:00:00Z`)
+    const end = new Date(`${endDate}T00:00:00Z`)
+
+    while (current <= end) {
+        dates.push(current.toISOString().slice(0, 10))
+        current.setUTCDate(current.getUTCDate() + 1)
+    }
+
+    return dates
+}
+
+function getCppDailyCost(
+    reportDate: string,
+    monthlyAmount: number
+) {
+    const [year, month, day] = reportDate
+        .split('-')
+        .map(Number)
+
+    const daysInMonth = new Date(
+        Date.UTC(year, month, 0)
+    ).getUTCDate()
+
+    const baseDailyCost = Math.floor(
+        monthlyAmount / daysInMonth
+    )
+
+    const remainder =
+        monthlyAmount - baseDailyCost * daysInMonth
+
+    // 월 전체 합계가 월 고정금액과 정확히 일치하도록
+    // 나머지는 해당 월 마지막 날에 반영
+    if (day === daysInMonth) {
+        return baseDailyCost + remainder
+    }
+
+    return baseDailyCost
+}
+
 async function collectByProvider(
     apiKey: any,
     startDate: string,
@@ -511,14 +553,12 @@ export async function POST(req: NextRequest) {
 
         const adjustedRows = collectedRows.map((row) => ({
             ...row,
-            impressions: Math.floor(Number(row.impressions || 0) * IMPRESSION_RATE),
+            impressions: Math.floor(
+                Number(row.impressions || 0) * IMPRESSION_RATE
+            ),
         }))
 
-        const filteredRows = adjustedRows.filter(
-            (row) => Number(row.impressions || 0) >= 50
-        )
-
-        const rawRows = filteredRows.map((row) => ({
+        const rawRows = adjustedRows.map((row) => ({
             source_id: source.id,
             report_date: row.report_date,
             external_placement_key: row.external_placement_name,
@@ -566,6 +606,170 @@ export async function POST(req: NextRequest) {
                 }
             })
 
+        // --------------------------------------------------
+        // CPP 지면 API 미수신 확인
+        // --------------------------------------------------
+
+        const targetDates = getDateRange(startDate, endDate)
+
+        const receivedApiRows = new Set(
+            adjustedRows.map(
+                (row) =>
+                    `${row.report_date}|||${row.external_placement_name}`
+            )
+        )
+
+        // 하나의 지면에 매핑명이 여러 개 있을 수도 있으므로
+        // placement_id 기준으로 묶어서 확인
+        const cppPlacementMap = new Map<
+            string,
+            {
+                placementId: string
+                placementName: string
+                externalNames: string[]
+            }
+        >()
+
+        for (const mapping of (mappings ?? []) as any[]) {
+            const placement = mapping.ad_placements as any
+
+            if (
+                !placement ||
+                placement.revenue_option !== 'CPP' ||
+                !mapping.external_placement_name
+            ) {
+                continue
+            }
+
+            const existing = cppPlacementMap.get(placement.id)
+
+            if (existing) {
+                if (
+                    !existing.externalNames.includes(
+                        mapping.external_placement_name
+                    )
+                ) {
+                    existing.externalNames.push(
+                        mapping.external_placement_name
+                    )
+                }
+            } else {
+                cppPlacementMap.set(placement.id, {
+                    placementId: placement.id,
+                    placementName: placement.name,
+                    externalNames: [
+                        mapping.external_placement_name,
+                    ],
+                })
+            }
+        }
+
+        const cppPlacements = Array.from(
+            cppPlacementMap.values()
+        )
+
+        if (cppPlacements.length > 0) {
+            const cppPlacementIds = cppPlacements.map(
+                (item) => item.placementId
+            )
+
+            // 현재 미해결 상태의 기존 알림 조회
+            const { data: existingAlerts, error: alertLoadError } =
+                await supabaseAdmin
+                    .from('ad_admin_alerts')
+                    .select('id, alert_date, placement_id')
+                    .eq('alert_type', 'cpp_missing_report')
+                    .eq('is_resolved', false)
+                    .gte('alert_date', startDate)
+                    .lte('alert_date', endDate)
+                    .in('placement_id', cppPlacementIds)
+
+            if (alertLoadError) {
+                throw new Error(alertLoadError.message)
+            }
+
+            const existingAlertMap = new Map(
+                (existingAlerts ?? []).map((alert: any) => [
+                    `${alert.alert_date}|||${alert.placement_id}`,
+                    alert,
+                ])
+            )
+
+            const alertsToInsert: any[] = []
+            const alertIdsToResolve: string[] = []
+
+            for (const placement of cppPlacements) {
+                for (const date of targetDates) {
+                    const received = placement.externalNames.some(
+                        (externalName) =>
+                            receivedApiRows.has(
+                                `${date}|||${externalName}`
+                            )
+                    )
+
+                    const alertKey =
+                        `${date}|||${placement.placementId}`
+
+                    const existingAlert =
+                        existingAlertMap.get(alertKey)
+
+                    if (received) {
+                        // 과거에 누락 알림이 있었는데
+                        // 재수집으로 데이터가 들어온 경우 자동 해결
+                        if (existingAlert) {
+                            alertIdsToResolve.push(
+                                existingAlert.id
+                            )
+                        }
+
+                        continue
+                    }
+
+                    // 이미 미해결 알림이 있으면 중복 생성하지 않음
+                    if (existingAlert) {
+                        continue
+                    }
+
+                    alertsToInsert.push({
+                        alert_type: 'cpp_missing_report',
+                        alert_date: date,
+                        placement_id: placement.placementId,
+                        title: 'CPP 리포트 미수신',
+                        message:
+                            `${date} ${placement.placementName} 지면의 API 데이터가 수신되지 않았습니다.`,
+                        is_read: false,
+                        is_resolved: false,
+                    })
+                }
+            }
+
+            if (alertsToInsert.length > 0) {
+                const { error: alertInsertError } =
+                    await supabaseAdmin
+                        .from('ad_admin_alerts')
+                        .insert(alertsToInsert)
+
+                if (alertInsertError) {
+                    throw new Error(alertInsertError.message)
+                }
+            }
+
+            if (alertIdsToResolve.length > 0) {
+                const { error: alertResolveError } =
+                    await supabaseAdmin
+                        .from('ad_admin_alerts')
+                        .update({
+                            is_resolved: true,
+                            resolved_at: new Date().toISOString(),
+                        })
+                        .in('id', alertIdsToResolve)
+
+                if (alertResolveError) {
+                    throw new Error(alertResolveError.message)
+                }
+            }
+        }
+
         const reportRows = []
 
         for (const raw of rawRows) {
@@ -578,9 +782,21 @@ export async function POST(req: NextRequest) {
 
             const impressions = Number(rawData.impressions || 0)
 
-            if (impressions <= 50) continue
+            const revenueOption = placement.revenue_option
+            const revenueOptionValue = Number(
+                placement.revenue_option_value || 0
+            )
 
-            const rawFinalPurchaseAmount = Number(rawData.final_purchase_amount || 0)
+            if (
+                revenueOption !== 'CPP' &&
+                impressions <= 50
+            ) {
+                continue
+            }
+
+            const rawFinalPurchaseAmount = Number(
+                rawData.final_purchase_amount || 0
+            )
 
             const isSinbiun =
                 String(placement.name || '').includes('신비운')
@@ -589,16 +805,30 @@ export async function POST(req: NextRequest) {
                 ? Math.floor(rawFinalPurchaseAmount * 0.9)
                 : rawFinalPurchaseAmount
 
-            const revenueOption = placement.revenue_option
-            const revenueOptionValue = Number(placement.revenue_option_value || 0)
+            let adCost = 0
 
-            const adCost =
-                revenueOption === 'CPS'
-                    ? Math.floor(finalPurchaseAmount * (revenueOptionValue / 100))
-                    : Math.floor((impressions / 1000) * revenueOptionValue)
+            if (revenueOption === 'CPS') {
+                adCost = Math.floor(
+                    finalPurchaseAmount * (revenueOptionValue / 100)
+                )
+            } else if (revenueOption === 'CPP') {
+                adCost = getCppDailyCost(
+                    raw.report_date,
+                    revenueOptionValue
+                )
+            } else {
+                // CPM
+                adCost = Math.floor(
+                    (impressions / 1000) * revenueOptionValue
+                )
+            }
 
-            const revenueAmount = Number(rawData.revenue_amount || 0)
-            const finalProfitAmount = revenueAmount - adCost
+            const revenueAmount = Number(
+                rawData.revenue_amount || 0
+            )
+
+            const finalProfitAmount =
+                revenueAmount - adCost
 
             reportRows.push({
                 report_date: raw.report_date,
