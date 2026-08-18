@@ -45,8 +45,21 @@ export default function AdminHeader() {
 
     useEffect(() => {
         loadProfile()
-        loadAlerts()
     }, [])
+
+    useEffect(() => {
+        if (!profile) return
+
+        if (
+            profile.role === 'super_admin' ||
+            profile.role === 'manager_full'
+        ) {
+            loadAlerts()
+        } else {
+            setAlerts([])
+            setAlertOpen(false)
+        }
+    }, [profile])
 
     async function loadProfile() {
         const {
@@ -207,6 +220,10 @@ export default function AdminHeader() {
         (alert) => !alert.is_read
     ).length
 
+    const canSeeAlerts =
+        profile?.role === 'super_admin' ||
+        profile?.role === 'manager_full'
+
     return (
         <header className="border-b border-zinc-200 bg-white">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5">
@@ -227,77 +244,79 @@ export default function AdminHeader() {
 
                 <div className="flex items-center gap-3">
 
-                    <div className="relative">
-                        <button
-                            onClick={() => {
-                                setAlertOpen(!alertOpen)
-                                setMenuOpen(false)
-                            }}
-                            className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50"
-                            title="알림"
-                        >
-                            <Bell size={20} />
+                    {canSeeAlerts && (
+                        <div className="relative">
+                            <button
+                                onClick={() => {
+                                    setAlertOpen(!alertOpen)
+                                    setMenuOpen(false)
+                                }}
+                                className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50"
+                                title="알림"
+                            >
+                                <Bell size={20} />
 
-                            {unreadCount > 0 && (
-                                <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
-                                    {unreadCount > 99 ? '99+' : unreadCount}
-                                </span>
-                            )}
-                        </button>
+                                {unreadCount > 0 && (
+                                    <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>
 
-                        {alertOpen && (
-                            <div className="absolute right-0 z-50 mt-2 w-96 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg">
-                                <div className="border-b border-zinc-200 px-4 py-3">
-                                    <div className="font-semibold">
-                                        관리자 알림
-                                    </div>
-
-                                    <div className="mt-1 text-xs text-zinc-500">
-                                        미확인 {unreadCount}건
-                                    </div>
-                                </div>
-
-                                <div className="max-h-96 overflow-y-auto">
-                                    {alerts.length === 0 ? (
-                                        <div className="px-4 py-8 text-center text-sm text-zinc-500">
-                                            현재 확인할 알림이 없습니다.
+                            {alertOpen && (
+                                <div className="absolute right-0 z-50 mt-2 w-96 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg">
+                                    <div className="border-b border-zinc-200 px-4 py-3">
+                                        <div className="font-semibold">
+                                            관리자 알림
                                         </div>
-                                    ) : (
-                                        alerts.map((alert) => (
-                                            <button
-                                                key={alert.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    if (!alert.is_read) {
-                                                        handleReadAlert(alert.id)
-                                                    }
-                                                }}
-                                                className="block w-full border-b border-zinc-100 px-4 py-3 text-left hover:bg-zinc-50 last:border-b-0"
-                                            >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="text-sm font-semibold text-zinc-950">
-                                                        {alert.title}
+
+                                        <div className="mt-1 text-xs text-zinc-500">
+                                            미확인 {unreadCount}건
+                                        </div>
+                                    </div>
+
+                                    <div className="max-h-96 overflow-y-auto">
+                                        {alerts.length === 0 ? (
+                                            <div className="px-4 py-8 text-center text-sm text-zinc-500">
+                                                현재 확인할 알림이 없습니다.
+                                            </div>
+                                        ) : (
+                                            alerts.map((alert) => (
+                                                <button
+                                                    key={alert.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (!alert.is_read) {
+                                                            handleReadAlert(alert.id)
+                                                        }
+                                                    }}
+                                                    className="block w-full border-b border-zinc-100 px-4 py-3 text-left hover:bg-zinc-50 last:border-b-0"
+                                                >
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="text-sm font-semibold text-zinc-950">
+                                                            {alert.title}
+                                                        </div>
+
+                                                        {!alert.is_read && (
+                                                            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-red-500" />
+                                                        )}
                                                     </div>
 
-                                                    {!alert.is_read && (
-                                                        <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-red-500" />
-                                                    )}
-                                                </div>
+                                                    <div className="mt-1 text-xs font-medium text-zinc-500">
+                                                        {alert.alert_date}
+                                                    </div>
 
-                                                <div className="mt-1 text-xs font-medium text-zinc-500">
-                                                    {alert.alert_date}
-                                                </div>
-
-                                                <div className="mt-2 text-sm text-zinc-700">
-                                                    {alert.message}
-                                                </div>
-                                            </button>
-                                        ))
-                                    )}
+                                                    <div className="mt-2 text-sm text-zinc-700">
+                                                        {alert.message}
+                                                    </div>
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="relative">
 
