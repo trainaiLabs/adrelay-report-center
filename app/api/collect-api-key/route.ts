@@ -397,6 +397,13 @@ async function collectByProvider(
         })
 
         if (!response.ok) {
+            const errorBody = await response.text()
+
+            console.error('데이블 API 오류:', {
+                status: response.status,
+                body: errorBody,
+            })
+
             throw new Error(`데이블 API 호출 실패: ${response.status}`)
         }
 
